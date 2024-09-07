@@ -1,8 +1,0 @@
-feature ideas:
-- parameters that can be customized for each visualizer
-- more visualizers
-
-issues:
-- starfield bloom filter still doesn't seem quite right
-- figure out better distribution of stars for starfield
-  - also they should keep "regenerating" in front as the camera continues moving forward
