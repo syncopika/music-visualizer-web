@@ -1,0 +1,128 @@
+<!doctype html>
+
+<html>
+
+<head>
+  <meta charset="utf8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>music visualizer web app</title>
+  <style>
+    body {
+      font-family: Arial;
+    }
+    
+    h1 {
+      text-align: center;
+    }
+    
+    button:hover {
+      cursor: pointer;
+    }
+    
+    button {
+      padding: 3px;
+    }
+    
+    /*
+    #audioFileName:before {
+      content: "Now playing: ";
+    }*/
+    
+    #audioFileName {
+      width: fit-content;
+      /* 
+      animation: marquee 10s linear infinite;
+      font-weight: bold;
+      */
+    }
+    
+    .marquee {
+      margin: 0 auto;
+      overflow: hidden;
+      /* width: 20%; */
+      position: relative;
+      white-space: nowrap;
+    }
+    
+    /*
+    @keyframes marquee {
+      0% {transform: translateX(100%);}
+      100% {transform: translateX(-100%);}
+    }
+    */
+    
+    #canvasContainer {
+      width: 50vw;
+      height: 60vh;
+      border: 1px solid #ccc;
+      margin: 0 auto;
+    }
+    
+    #loadingMsg {
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    #toggleRecording {
+      display: flex;
+      align-items: center;
+    }
+    
+    .content {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .visualizer-section p, select {
+      display: inline-block;
+    }
+    
+    .visualizer-section p {
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <h1> music visualizer </h1>
+  <main class='content'>
+    <p id='loadingMsg'>Loading...</p>
+    <div id='canvasContainer'></div>
+    
+    <div class='marquee'>
+      <p id='audioFileName'></p>
+    </div>
+    
+    <div class='toolbar'>
+      <button id='importAudio'> import audio </button>
+      <input id='fileInput' style='display:none;' type='file' accept='audio/*'>
+      <button id='playVisualization'> play </button>
+      <button id='stopVisualization'> stop </button>
+      <div class='visualizer-section'>
+        <p> visualizer: </p>
+        <select id='visualizerChoice'>
+          <option> waveform </option>
+          <option> starfield </option>
+          <option> pixels </option>
+        </select>
+      </div>
+      <div id='toggleRecording'>
+        <label for='toggleRecordingCheckbox' id='toggleRecordingLabel'> record: </label>
+        <input id='toggleRecordingCheckbox' type='checkbox' />
+      </div>
+    </div>
+  </main>
+  
+  <script type="module" src="/src/main.ts">
+  </script>
+</body>
+
+</html>

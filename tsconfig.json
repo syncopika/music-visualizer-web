@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": [
+      "es2016", 
+      "dom"
+    ],
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "strict": true,
+    "skipLibCheck": true,
+    "strictPropertyInitialization": false
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/visualizations/visualizations.ts"
+  ]
+}
