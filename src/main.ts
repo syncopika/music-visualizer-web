@@ -5,8 +5,8 @@ import {
   Camera,
   PerspectiveCamera,
   WebGLRenderer,
-  Mesh,
   PCFSoftShadowMap,
+  Clock,
 } from 'three';
 
 import { AudioManager } from './AudioManager';
@@ -16,6 +16,7 @@ import { VisualizerBase } from './visualizations/VisualizerBase';
 import { Waveform } from './visualizations/Waveform';
 import { Starfield } from './visualizations/Starfield';
 import { Pixels } from './visualizations/Pixels';
+import { CircularCubes } from './visualizations/CircularCubes';
 
 // important scene-related objects we might need to pass around
 interface ISceneComponents {
@@ -31,6 +32,8 @@ let visualizer: VisualizerBase | null = null;
 let recordingOn = false;
 let mediaRecorder: MediaRecorder | null = null;
 let capturedVideoChunks: Blob[] = [];
+
+const clock = new Clock();
 
 // stuff for canvas recording - try webm first for now
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
@@ -145,7 +148,11 @@ function switchVisualizer(evt: Event){
   
   switch (selected) {
     case 'waveform':
-      visualizer = new Waveform('waveform', scene, audioManager, 50);
+      visualizer = new Waveform('waveform', clock, scene, audioManager, 50);
+      visualizer.init();
+      break;
+    case 'circular-cubes':
+      visualizer = new CircularCubes('circular-cubes', clock, scene, audioManager, 50);
       visualizer.init();
       break;
     case 'starfield':
@@ -161,7 +168,8 @@ function switchVisualizer(evt: Event){
       break;
     case 'pixels':
       visualizer = new Pixels('pixels', scene, audioManager);
-      visualizer.init();      
+      visualizer.init();    
+      break;
     default:
       break;
   }
@@ -188,7 +196,7 @@ const { renderer, scene, camera } = initializeScene((canvasContainer as HTMLCanv
 const loadingMsg = document.getElementById('loadingMsg');
 if(loadingMsg) loadingMsg.style.display = 'none';
 
-visualizer = new Waveform('waveform', scene, audioManager, 50);
+visualizer = new Waveform('waveform', clock, scene, audioManager, 50);
 visualizer.init();
 
 update();

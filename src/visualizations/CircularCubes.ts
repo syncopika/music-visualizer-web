@@ -12,12 +12,12 @@ import {
   Clock,
 } from 'three';
 
-export class Waveform extends VisualizerBase {
+export class CircularCubes extends VisualizerBase {
   numObjects: number;
   visualization: Group;
   clock: Clock;
   lastTime: number;
-  moveTo: number[];
+  scaleTo: number[];
   
   constructor(name: string, clock: Clock, scene: Scene, audioManager: AudioManager, size: number){
     super(name, scene, audioManager);
@@ -25,7 +25,7 @@ export class Waveform extends VisualizerBase {
     this.visualization = new Group();
     this.clock = clock;
     this.lastTime = clock.getElapsedTime();
-    this.moveTo = [];
+    this.scaleTo = [];
   }
   
   init(){
@@ -40,15 +40,17 @@ export class Waveform extends VisualizerBase {
     });
     
     const bufferLen = this.audioManager.analyser.frequencyBinCount;
-
     const numObjects = this.numObjects;
     const increment = Math.floor(bufferLen / numObjects);
-    const xIncrement = 0.93;
-    let xPos = -25;
+    
+    // arrange cubes in a circle
+    const radius = 10;
+    const angle = 360 / numObjects;
+    let currAngle = 0;
 
     function createVisualizationCube(){
       const boxGeometry = new BoxGeometry(0.4, 0.4, 0.4);
-      const boxMaterial = new MeshPhongMaterial({color: '#aaff00'});
+      const boxMaterial = new MeshPhongMaterial({color: '#ffffdd'}); // TODO: color gradient?
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;
       box.castShadow = true;
@@ -58,40 +60,46 @@ export class Waveform extends VisualizerBase {
     for(let i = 0; i < bufferLen; i += increment){
       const newCube = createVisualizationCube();
 
-      newCube.position.x = xPos + xIncrement;
+      const rad = currAngle * (Math.PI / 180);
+      newCube.rotateY(-rad);
+      newCube.position.x = radius * Math.cos(rad);
+      newCube.position.z = radius * Math.sin(rad);
+      
+      currAngle += angle;
 
       this.visualization.add(newCube);
-
-      xPos += xIncrement;
     }
     
     this.scene.add(this.visualization);
-    this.visualization.position.z = -15;
+    this.visualization.position.z = -18;
+    this.visualization.position.y += 2;
+    this.visualization.rotateX(Math.PI / 2);
   }
   
   update(){
+    const elapsedTime = this.clock.getElapsedTime();
+    
     const bufferLength = this.audioManager.analyser.frequencyBinCount;
     const buffer = this.audioManager.buffer;
     const numObjects = this.visualization.children.length;
     const increment = Math.floor(bufferLength / numObjects);
     
-    this.audioManager.analyser.getByteTimeDomainData(buffer);
+    this.audioManager.analyser.getByteFrequencyData(buffer); //getByteTimeDomainData is cool too! :D
     
-    const moveToIsEmpty = this.moveTo.length === 0;
-    const timeInterval = 0.04;
-    const elapsedTime = this.clock.getElapsedTime();
+    const scaleToIsEmpty = this.scaleTo.length === 0;
+    const timeInterval = 0.02;
     
     if(elapsedTime - this.lastTime >= timeInterval){
       this.lastTime = elapsedTime;
       
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
-        const y = value * 8;
+        const newVal = value * 12;
 
-        if(moveToIsEmpty){
-          this.moveTo.push(y);
+        if(scaleToIsEmpty){
+          this.scaleTo.push(newVal);
         }else{
-          this.moveTo[i] = y;
+          this.scaleTo[i] = newVal;
         }
       }
     }else{
@@ -99,34 +107,27 @@ export class Waveform extends VisualizerBase {
       
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
-        const y = value * 8;
+        const newVal = value * 12;
         const obj = this.visualization.children[i];
+        //console.log(`i: ${i}, delta x: ${obj.scale.x - newVal}, new val: ${newVal}`);
         
-        let valToMoveTo;
+        let valToScaleTo;
         
-        if(moveToIsEmpty){
-          this.moveTo.push(y);
-          valToMoveTo = y;
+        if(scaleToIsEmpty){
+          this.scaleTo.push(newVal);
+          valToScaleTo = newVal;
         }else{
-          valToMoveTo = this.moveTo[i];
+          valToScaleTo = this.scaleTo[i];
         }
-        
-        const newPos = new Vector3(obj.position.x, valToMoveTo, obj.position.z);
       
-        obj.position.lerpVectors(
-          obj.position, 
-          newPos, 
+        obj.scale.lerpVectors(
+          obj.scale, 
+          new Vector3(valToScaleTo, 1, 1), 
           lerpAmount,
         );
       }
     }
     
-    /*
-    for(let i = 0; i < numObjects; i++){
-      const value = buffer[i * increment] / 255; //128.0; // why 128?
-      const y = value * 5; // multiply by maximum height
-      const obj = this.visualization.children[i];
-      obj.position.lerp(new Vector3(obj.position.x, y, obj.position.z), 0.5);
-    }*/
+    this.visualization.rotateY(Math.PI / 2500);
   }
 }

@@ -9,17 +9,14 @@ import {
   Vector3,
   Group,
   Quaternion,
-  Color,
   Vector2,
   WebGLRenderer,
   MeshStandardMaterial,
-  Object3D,
 } from 'three';
 
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
-import { CopyShader } from 'three/addons/shaders/CopyShader.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 
@@ -130,13 +127,9 @@ export class Starfield extends VisualizerBase {
 
       star.position.set(xPos, yPos, zPos);
       
-      //@ts-ignore TS2339 (we added initialPosition to the star mesh)
-      star.initialPosition = yPos;
-      
       // give star a random rotation
       star.quaternion.copy(this.generateRandomQuaternion());
 
-      //@ts-ignore TS2345 (we added initialPosition to the star mesh)
       this.visualization.add(star);
     }
     
@@ -185,6 +178,15 @@ export class Starfield extends VisualizerBase {
       
       // also rotate each star about their own local y-axis
       obj.rotateY(Math.PI / 1000);
+      
+      // check to see if star is behind camera. if so, move it back in front
+      if(this.camera.position.z - obj.position.z < 0){
+        obj.position.set(
+          obj.position.x, 
+          obj.position.y, 
+          this.camera.position.z + Math.floor(Math.random() * (this.zMax))
+        );
+      }
     }
     
     this.camera.translateZ(-0.01); // move camera forward a bit
