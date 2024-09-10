@@ -73,7 +73,7 @@ export class AudioManager {
         
       const reader = new FileReader();
       reader.onload = (function(f){
-        return function(evt){
+        return function(){
           const filenameElement = document.getElementById('audioFileName');
           if(filenameElement) filenameElement.textContent = f.name;
         };

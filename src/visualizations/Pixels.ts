@@ -37,13 +37,21 @@ export class Pixels extends VisualizerBase {
 
 			void main() {
 				vec3 backgroundColor = vec3( 0.125, 0.125, 0.125 );
-				vec3 color = vec3( 1.0, 1.0, 0.0 );
+				vec3 color = vec3( 1.0, 1.0, 0.0 ); // * distance(vUv, vec2(vUv.x, 0));
 
-				float f = texture2D( tAudioData, vec2( vUv.x, 0.0 ) ).r;
+				float texelR = texture2D( tAudioData, vec2( vUv.x, 0.0 ) ).r;
 
-				float i = step( vUv.y, f ) * step( f - 0.0125, vUv.y );
-
-				gl_FragColor = vec4( mix( backgroundColor, color, i ), 1.0 );
+				float rectangleArea = step( vUv.y, texelR ) * step( texelR - 0.0125, vUv.y ); // * step( texelR - 2.0125, vUv.y );
+        
+        if(rectangleArea != 0.){
+          // this rectangle will be colored a gradient based on vUv.y
+          gl_FragColor = vec4( mix( vec3( 0., 0., 1. ), color, vUv.y ), 1.0 );
+          
+          //gl_FragColor = vec4( mix( backgroundColor, color, rectangleArea ), 1.0 );
+        }else{
+          // background color
+          gl_FragColor = vec4( mix( backgroundColor, color, 0. ), 1.0 );
+        }
 			}
     `;
     
