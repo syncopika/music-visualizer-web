@@ -141,7 +141,7 @@ export class Blob extends VisualizerBase {
               43758.5453123);
       }
 
-			void main() {
+      void main() {
         
         /*
         
@@ -160,7 +160,7 @@ export class Blob extends VisualizerBase {
         float displacement = (u_frequency / 50.) * (noise / 10.0);
         vec3 newPos = position + normal * displacement;
         
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( newPos, 1.0 );
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( newPos, 1.0 );
 			}
     `;
     
@@ -197,8 +197,6 @@ export class Blob extends VisualizerBase {
       }
     });
     
-    const bufferLen = this.audioManager.analyser.frequencyBinCount;
-    
     // make the blob
     const geometry = new IcosahedronGeometry(4, 30);
     
@@ -210,7 +208,7 @@ export class Blob extends VisualizerBase {
     
     this.visualization = new Mesh(geometry, material);
 
-    this.visualization.material.wireframe = true;
+    (this.visualization.material as ShaderMaterial).wireframe = true;
     this.visualization.position.z -= 3;
     this.visualization.position.y += 2;
    
@@ -220,15 +218,14 @@ export class Blob extends VisualizerBase {
   update(){
     const elapsedTime = this.clock.getElapsedTime();
     
-    const bufferLength = this.audioManager.analyser.frequencyBinCount;
     const buffer = this.audioManager.buffer;
     
     this.audioManager.analyser.getByteFrequencyData(buffer); //getByteTimeDomainData is cool too! :D
     
     const avgFreq = buffer.reduce((x , acc) => acc + x, 0) / buffer.length;
     
-    this.visualization.material.uniforms.u_time.value = elapsedTime;
-    this.visualization.material.uniforms.u_frequency.value = avgFreq;
+    (this.visualization.material as ShaderMaterial).uniforms.u_time.value = elapsedTime;
+    (this.visualization.material as ShaderMaterial).uniforms.u_frequency.value = avgFreq;
     
     /*
     const timeInterval = 0.02;

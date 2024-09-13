@@ -67,7 +67,7 @@ export class Waveform extends VisualizerBase {
     
     this.scene.add(this.visualization);
     this.visualization.position.z = -15;
-    this.visualization.position.y += 0.5;
+    this.visualization.position.y -= 0.5;
   }
   
   update(){
