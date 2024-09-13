@@ -161,16 +161,16 @@ export class Blob extends VisualizerBase {
         vec3 newPos = position + normal * displacement;
         
         gl_Position = projectionMatrix * modelViewMatrix * vec4( newPos, 1.0 );
-			}
+      }
     `;
     
     this.fragmentShader = `
       uniform vec2 u_resolution;
-      
-			void main() {
+
+      void main() {
         vec2 res_color = gl_FragCoord.xy / u_resolution;
         gl_FragColor = vec4(res_color.x, res_color.y, 1.0, 1.0);
-			}
+      }
     `;
     
     this.uniforms = {
