@@ -17,6 +17,7 @@ import { Waveform } from './visualizations/Waveform';
 import { Starfield } from './visualizations/Starfield';
 import { Pixels } from './visualizations/Pixels';
 import { CircularCubes } from './visualizations/CircularCubes';
+import { Blob as AnimatedBlob } from './visualizations/Blob';
 
 // important scene-related objects we might need to pass around
 interface ISceneComponents {
@@ -169,6 +170,10 @@ function switchVisualizer(evt: Event){
     case 'pixels':
       visualizer = new Pixels('pixels', scene, audioManager);
       visualizer.init();    
+      break;
+    case 'blob':
+      visualizer = new AnimatedBlob('blob', renderer, clock, scene, audioManager);
+      visualizer.init();
       break;
     default:
       break;
