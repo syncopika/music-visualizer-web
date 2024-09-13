@@ -67,6 +67,7 @@ export class Waveform extends VisualizerBase {
     
     this.scene.add(this.visualization);
     this.visualization.position.z = -15;
+    this.visualization.position.y -= 0.5;
   }
   
   update(){
@@ -78,15 +79,17 @@ export class Waveform extends VisualizerBase {
     this.audioManager.analyser.getByteTimeDomainData(buffer);
     
     const moveToIsEmpty = this.moveTo.length === 0;
-    const timeInterval = 0.04;
+    const timeInterval = 0.04; // messing with this value can produce some interesting results!
     const elapsedTime = this.clock.getElapsedTime();
+    const factor = 8;
     
     if(elapsedTime - this.lastTime >= timeInterval){
       this.lastTime = elapsedTime;
       
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
-        const y = value * 8;
+        const y = value * factor;
+        //y = y < this.visualization.children[i].position.y ? 0 : y;
 
         if(moveToIsEmpty){
           this.moveTo.push(y);
@@ -99,7 +102,8 @@ export class Waveform extends VisualizerBase {
       
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
-        const y = value * 8;
+        const y = value * factor;
+        //y = y < this.visualization.children[i].position.y ? 0 : y;
         const obj = this.visualization.children[i];
         
         let valToMoveTo;

@@ -78,7 +78,6 @@ export class Pixels extends VisualizerBase {
       }
     });
     
-    // TODO: reset camera
     const material = new ShaderMaterial({
       uniforms: this.uniforms,
       vertexShader: this.vertexShader,
