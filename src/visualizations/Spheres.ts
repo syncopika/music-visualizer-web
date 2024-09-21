@@ -45,23 +45,30 @@ export class Spheres extends VisualizerBase {
     
     const createVisualizationSphere = (position: Vector3) => {
       const geometry = new SphereGeometry(10, 28, 16);
-      const material = new MeshPhongMaterial({color: '#2f88f5'});
+      const material = new MeshPhongMaterial({color: '#2f88f5', transparent: true});
       const sphere = new Mesh(geometry, material);
-      sphere.position.copy(position);
-      sphere.scale.set(0.08, 0.08, 0.08);
+      
+      sphere.position.copy(position.normalize());
+      
+      const scale = Math.random() * (0.085 - 0.045) + 0.045;
+      sphere.scale.set(scale, scale, scale); //0.08, 0.08, 0.08);
+      
       return sphere;
     };
     
     const getRandomVertex = (geometry: SphereGeometry) => {
       const verts = geometry.attributes.position.array;
       const numVertices = verts.length / 3;
-      const randVertIdx = Math.floor(Math.random() * numVertices);
+      const randVertIdx = Math.floor(Math.random() * numVertices) * 3;
       return new Vector3(verts[randVertIdx], verts[randVertIdx + 1], verts[randVertIdx + 2]);
     }
     
     const skeletonGeometry = new SphereGeometry(15, 32, 16);
     
     for(let i = 0; i < bufferLen; i += increment){
+      // TODO: get a random vertex but uniformly distributed?
+      // https://mathworld.wolfram.com/SpherePointPicking.html
+      // https://corysimon.github.io/articles/uniformdistn-on-sphere/
       const spherePos = getRandomVertex(skeletonGeometry);
       this.visualization.add(createVisualizationSphere(spherePos));
     }
@@ -69,7 +76,7 @@ export class Spheres extends VisualizerBase {
     this.scene.add(this.visualization);
     
     this.visualization.position.z = -25;
-    this.visualization.position.y += 3;
+    this.visualization.position.y += 2.5;
     this.visualization.rotateX(Math.PI / 2);
   }
   
@@ -121,7 +128,7 @@ export class Spheres extends VisualizerBase {
         lerpTo
           .copy(obj.position)
           .normalize()
-          .multiplyScalar(valToScaleTo);
+          .multiplyScalar(valToScaleTo * 2.1);
         
         obj.position.lerpVectors(
           obj.position,
@@ -129,9 +136,12 @@ export class Spheres extends VisualizerBase {
           lerpAmount,
         );
         
+        const mat = (obj as Mesh).material as MeshPhongMaterial;
+        mat.opacity = obj.position.distanceTo(new Vector3(0, 0, 0)) / 10;
+        //console.log(obj.material.opacity);
       }
     }
     
-    this.visualization.rotateZ(Math.PI / 2500);
+    this.visualization.rotateZ(Math.PI / 500);
   }
 }

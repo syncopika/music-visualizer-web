@@ -177,7 +177,7 @@ function switchVisualizer(evt: Event){
       visualizer.init();
       break;
     case 'spheres':
-      visualizer = new Spheres('spheres', clock, scene, audioManager, 30);
+      visualizer = new Spheres('spheres', clock, scene, audioManager, 50);
       visualizer.init();
       break;
     default:
