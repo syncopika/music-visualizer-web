@@ -1,11 +1,12 @@
 // TODO: need web audio types
 export class AudioManager {
-  audioContext:  AudioContext;
-  analyser:      AnalyserNode;
-  buffer:        Uint8Array;
-  audioSource:   AudioBufferSourceNode;
+  audioContext:            AudioContext;
+  mediaStreamDestination:  MediaStreamAudioDestinationNode
+  analyser:                AnalyserNode;
+  buffer:                  Uint8Array;
+  audioSource:             AudioBufferSourceNode;
   audioFileUrl = '';
-  isPlaying = false;;
+  isPlaying = false;
   
   constructor(){
     // set up web audio stuff
@@ -14,20 +15,19 @@ export class AudioManager {
     const bufferLength = analyser.frequencyBinCount;
     const buffer = new Uint8Array(bufferLength);
     
+    // for recording
+    const audioStream = audioCtx.createMediaStreamDestination();
+    
     this.audioContext = audioCtx;
     this.analyser = analyser;
     this.buffer = buffer;
+    this.mediaStreamDestination = audioStream;
   }
   
   loadAudioFile(url: string){
     this.audioFileUrl = url;
     this.audioSource = this.audioContext.createBufferSource();
     
-    /*
-    this.audioSource.onended = () => {
-      this.stop();
-    };*/
-
     const req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.responseType = 'arraybuffer';
@@ -35,8 +35,8 @@ export class AudioManager {
       this.audioContext.decodeAudioData(req.response, (buffer) => {
         if (!this.audioSource.buffer) this.audioSource.buffer = buffer;
         this.audioSource.connect(this.analyser);
-        //this.audioSource.connect(freqAnalyser);
         this.audioSource.connect(this.audioContext.destination);
+        this.audioSource.connect(this.mediaStreamDestination);
       });
     };
     

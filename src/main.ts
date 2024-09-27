@@ -35,17 +35,34 @@ let recordingOn = false;
 let mediaRecorder: MediaRecorder | null = null;
 let capturedVideoChunks: Blob[] = [];
 
+const audioManager = new AudioManager();
 const clock = new Clock();
 
-// stuff for canvas recording - try webm first for now
+// html elements
+const importAudioBtn = document.getElementById('importAudio');
+const canvasContainer = document.getElementById('canvasContainer');
+const playBtn = document.getElementById('playVisualization');
+const stopBtn = document.getElementById('stopVisualization');
+const vizSelect = document.getElementById('visualizerChoice');
+const toggleRecording = document.getElementById('toggleRecordingCheckbox');
+const loadingMsg = document.getElementById('loadingMsg');
+
+// stuff for canvas recording
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
 // https://stackoverflow.com/questions/77130824/is-it-possible-to-bind-a-html-canvas-to-an-ffmpeg-javascript-port-to-get-a-video
 // https://stackoverflow.com/questions/62863547/save-canvas-data-as-mp4-javascript
 // https://stackoverflow.com/questions/76706744/whats-the-most-performant-way-to-encode-an-mp4-video-of-frames-from-a-webgl-can
 // https://stackoverflow.com/questions/60882162/im-not-able-to-view-the-total-length-of-the-recorded-video-and-the-timelines
+// https://stackoverflow.com/questions/39302814/mediastream-capture-canvas-and-audio-simultaneously
 function startCanvasRecord(renderer: WebGLRenderer){
   if(!mediaRecorder){
+    if(canvasContainer) canvasContainer.style.border = '3px solid #aaff00';
+    
     const canvasStream = renderer.domElement.captureStream();
+    
+    const audioTrack = audioManager.mediaStreamDestination.stream.getAudioTracks()[0];
+    canvasStream.addTrack(audioTrack); // make sure we record the audio too
+    
     mediaRecorder = new MediaRecorder(canvasStream, {mimeType: 'video/webm'});
     
     mediaRecorder.ondataavailable = (e) => {
@@ -60,20 +77,21 @@ function startCanvasRecord(renderer: WebGLRenderer){
       downloadLink.href = recordedVideoUrl;
       downloadLink.target = '_blank';
       downloadLink.click();
+      
+      capturedVideoChunks = [];
     };
+    
+    mediaRecorder.start();
   }
-  
-  mediaRecorder.start();
 }
 
 function stopCanvasRecord(){
   if(mediaRecorder){
+    if(canvasContainer) canvasContainer.style.border = 'none';
+    
     mediaRecorder.stop();
-    capturedVideoChunks = [];
+    mediaRecorder = null;
   }
-  
-  // at least for now, we can merge the resulting webm with wav audio via ffmpeg, for example.
-  // e.g. ffmpeg -i "video.webm" -i "music.wav" -c:v copy "output.webm"
 }
 
 function initializeScene(container: HTMLCanvasElement): ISceneComponents {
@@ -186,24 +204,20 @@ function switchVisualizer(evt: Event){
 }
 
 // start
-const audioManager = new AudioManager();
-const importAudioBtn = document.getElementById("importAudio");
 if(importAudioBtn) audioManager.setupInput((importAudioBtn as HTMLButtonElement));
 audioManager.loadExample();
 
 // setup some event listeners
-document.getElementById('playVisualization')?.addEventListener('click', playVisualization);
-document.getElementById('stopVisualization')?.addEventListener('click', stopVisualization);
-document.getElementById('visualizerChoice')?.addEventListener('change', switchVisualizer);
-document.getElementById('toggleRecordingCheckbox')?.addEventListener(
+playBtn?.addEventListener('click', playVisualization);
+stopBtn?.addEventListener('click', stopVisualization);
+vizSelect?.addEventListener('change', switchVisualizer);
+toggleRecording?.addEventListener(
   'change', () => recordingOn = !recordingOn
 );
 
-const canvasContainer = document.getElementById('canvasContainer');
 const { renderer, scene, camera } = initializeScene((canvasContainer as HTMLCanvasElement));
 
 // stuff has loaded, hide loading message
-const loadingMsg = document.getElementById('loadingMsg');
 if(loadingMsg) loadingMsg.style.display = 'none';
 
 visualizer = new Waveform('waveform', clock, scene, audioManager, 50);
