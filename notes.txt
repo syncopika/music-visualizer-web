@@ -5,3 +5,4 @@ feature ideas:
 issues:
 - starfield bloom filter still doesn't seem quite right
 - figure out better distribution of stars for starfield
+- better video quality?
