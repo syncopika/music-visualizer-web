@@ -72,7 +72,7 @@ export class Waves extends VisualizerBase {
       // set column colors as gradient?
       
       //let deg = 0;
-      const maxY = 10;
+      //const maxY = 10;
       
       for(let i = 0; i < bufferLen; i += increment){
         const newCube = createVisualizationCube();
@@ -129,7 +129,7 @@ export class Waves extends VisualizerBase {
       const lerpAmount = (elapsedTime - this.lastTime) / timeInterval;
       
       const cols = this.visualization.children;
-      for(let col of cols){
+      for(const col of cols){
         for(let i = 0; i < numObjects; i++){
           const value = buffer[i * increment] / 255;
           const newVal = value * 12;
