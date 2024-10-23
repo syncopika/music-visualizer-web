@@ -19,6 +19,7 @@ import { Pixels } from './visualizations/Pixels';
 import { CircularCubes } from './visualizations/CircularCubes';
 import { Blob as AnimatedBlob } from './visualizations/Blob';
 import { Spheres } from './visualizations/Spheres';
+import { Waves } from './visualizations/Waves';
 
 // important scene-related objects we might need to pass around
 interface ISceneComponents {
@@ -196,6 +197,10 @@ function switchVisualizer(evt: Event){
       break;
     case 'spheres':
       visualizer = new Spheres('spheres', clock, scene, audioManager, 50);
+      visualizer.init();
+      break;
+    case 'waves':
+      visualizer = new Waves('waves', clock, scene, audioManager, 50);
       visualizer.init();
       break;
     default:
