@@ -47,6 +47,11 @@ const stopBtn = document.getElementById('stopVisualization');
 const vizSelect = document.getElementById('visualizerChoice');
 const toggleRecording = document.getElementById('toggleRecordingCheckbox');
 const loadingMsg = document.getElementById('loadingMsg');
+const drawer = document.querySelector('.drawer');
+const visualizerOptions = document.getElementById('visualizerSpecificOptions');
+const showDrawer = document.getElementById('showDrawer');
+const hideDrawer = document.getElementById('hideDrawer');
+const bgColorPicker = document.getElementById('bgColorPicker');
 
 // stuff for canvas recording
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
@@ -95,6 +100,7 @@ function stopCanvasRecord(){
   }
 }
 
+// TODO: maybe have a scene manager so we can more easily change lighting and stuff
 function initializeScene(container: HTMLCanvasElement): ISceneComponents {
   const scene = new Scene();
   scene.background = new Color(0x111e37); //new Color(0xeeeeee);
@@ -208,18 +214,54 @@ function switchVisualizer(evt: Event){
   }
 }
 
+// assuming only one light
+function updateSceneLighting(scene: Scene, axis: string, val: number){
+  const light = scene.children.find(x => x.type === 'SpotLight');
+  if(light){
+    if(axis === 'lightX'){
+      light.position.x = val;
+    }else if(axis === 'lightY'){
+      light.position.y = val;
+    }else if(axis === 'lightZ'){
+      light.position.z = val;
+    }
+  }
+}
+
 // start
 if(importAudioBtn) audioManager.setupInput((importAudioBtn as HTMLButtonElement));
 audioManager.loadExample();
 
-// setup some event listeners
+// setup some event listeners for buttons
 playBtn?.addEventListener('click', playVisualization);
 stopBtn?.addEventListener('click', stopVisualization);
 vizSelect?.addEventListener('change', switchVisualizer);
 toggleRecording?.addEventListener(
   'change', () => recordingOn = !recordingOn
 );
+showDrawer?.addEventListener('click', () => {
+  if(drawer) drawer.style.display = 'block';
+});
+hideDrawer?.addEventListener('click', () => {
+  if(drawer) drawer.style.display = 'none'; 
+});
+bgColorPicker?.addEventListener('change', (evt: Event) => {
+  if(scene) scene.background = new Color(evt.target.value);
+});
+['lightX', 'lightY', 'lightZ'].forEach(axis => {
+  const control = document.getElementById(axis);
+  if(control){
+    control.addEventListener('input', (evt: Event) => {
+      const val = evt.target.value;
+      const text = document.getElementById(`${axis}Value`);
+      if(text) text.textContent = `${val}`;
+      
+      updateSceneLighting(scene, axis, val);
+    });
+  }
+});
 
+// 3d stuff setup
 const { renderer, scene, camera } = initializeScene((canvasContainer as HTMLCanvasElement));
 
 // stuff has loaded, hide loading message

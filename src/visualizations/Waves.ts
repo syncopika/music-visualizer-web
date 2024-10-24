@@ -53,7 +53,7 @@ export class Waves extends VisualizerBase {
     const increment = Math.floor(bufferLen / numObjects);
 
     function createVisualizationCube(){
-      const boxGeometry = new BoxGeometry(0.2, 0.4, 0.4);
+      const boxGeometry = new BoxGeometry(0.2, 0.4, 0.2);
       const boxMaterial = new MeshPhongMaterial({color: '#ffffdd'}); // TODO: color gradient?
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;
@@ -154,6 +154,9 @@ export class Waves extends VisualizerBase {
     }
     
     this.visualization.position.z += 0.04;
+    
+    // TODO: this isn't great, can we have a smoother reset? or maybe just keep moving rows from front to back as they get away from the camera.
+    // reset position of visualization after it moves far enough that there's not much of it left in the viewport
     if(this.visualization.position.z > 100){
       this.visualization.position.z = -50;
     }
