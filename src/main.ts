@@ -48,7 +48,7 @@ const vizSelect = document.getElementById('visualizerChoice');
 const toggleRecording = document.getElementById('toggleRecordingCheckbox');
 const loadingMsg = document.getElementById('loadingMsg');
 const drawer = document.querySelector('.drawer');
-const visualizerOptions = document.getElementById('visualizerSpecificOptions');
+//const visualizerOptions = document.getElementById('visualizerSpecificOptions');
 const showDrawer = document.getElementById('showDrawer');
 const hideDrawer = document.getElementById('hideDrawer');
 const bgColorPicker = document.getElementById('bgColorPicker');
@@ -240,19 +240,21 @@ toggleRecording?.addEventListener(
   'change', () => recordingOn = !recordingOn
 );
 showDrawer?.addEventListener('click', () => {
-  if(drawer) drawer.style.display = 'block';
+  if(drawer) (drawer as HTMLElement).style.display = 'block';
 });
 hideDrawer?.addEventListener('click', () => {
-  if(drawer) drawer.style.display = 'none'; 
+  if(drawer) (drawer as HTMLElement).style.display = 'none'; 
 });
 bgColorPicker?.addEventListener('change', (evt: Event) => {
-  if(scene) scene.background = new Color(evt.target.value);
+  const target = evt.target as HTMLInputElement;
+  if(scene && target) scene.background = new Color(target.value);
 });
 ['lightX', 'lightY', 'lightZ'].forEach(axis => {
   const control = document.getElementById(axis);
   if(control){
     control.addEventListener('input', (evt: Event) => {
-      const val = evt.target.value;
+      const target = evt.target as HTMLInputElement;
+      const val = parseInt(target.value);
       const text = document.getElementById(`${axis}Value`);
       if(text) text.textContent = `${val}`;
       
