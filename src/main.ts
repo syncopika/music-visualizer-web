@@ -19,6 +19,7 @@ import { Pixels } from './visualizations/Pixels';
 import { CircularCubes } from './visualizations/CircularCubes';
 import { Blob as AnimatedBlob } from './visualizations/Blob';
 import { Spheres } from './visualizations/Spheres';
+import { Waves } from './visualizations/Waves';
 
 // important scene-related objects we might need to pass around
 interface ISceneComponents {
@@ -46,6 +47,11 @@ const stopBtn = document.getElementById('stopVisualization');
 const vizSelect = document.getElementById('visualizerChoice');
 const toggleRecording = document.getElementById('toggleRecordingCheckbox');
 const loadingMsg = document.getElementById('loadingMsg');
+const drawer = document.querySelector('.drawer');
+//const visualizerOptions = document.getElementById('visualizerSpecificOptions');
+const showDrawer = document.getElementById('showDrawer');
+const hideDrawer = document.getElementById('hideDrawer');
+const bgColorPicker = document.getElementById('bgColorPicker');
 
 // stuff for canvas recording
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
@@ -94,6 +100,7 @@ function stopCanvasRecord(){
   }
 }
 
+// TODO: maybe have a scene manager so we can more easily change lighting and stuff
 function initializeScene(container: HTMLCanvasElement): ISceneComponents {
   const scene = new Scene();
   scene.background = new Color(0x111e37); //new Color(0xeeeeee);
@@ -198,8 +205,26 @@ function switchVisualizer(evt: Event){
       visualizer = new Spheres('spheres', clock, scene, audioManager, 50);
       visualizer.init();
       break;
+    case 'waves':
+      visualizer = new Waves('waves', clock, scene, audioManager, 50);
+      visualizer.init();
+      break;
     default:
       break;
+  }
+}
+
+// assuming only one light
+function updateSceneLighting(scene: Scene, axis: string, val: number){
+  const light = scene.children.find(x => x.type === 'SpotLight');
+  if(light){
+    if(axis === 'lightX'){
+      light.position.x = val;
+    }else if(axis === 'lightY'){
+      light.position.y = val;
+    }else if(axis === 'lightZ'){
+      light.position.z = val;
+    }
   }
 }
 
@@ -207,14 +232,38 @@ function switchVisualizer(evt: Event){
 if(importAudioBtn) audioManager.setupInput((importAudioBtn as HTMLButtonElement));
 audioManager.loadExample();
 
-// setup some event listeners
+// setup some event listeners for buttons
 playBtn?.addEventListener('click', playVisualization);
 stopBtn?.addEventListener('click', stopVisualization);
 vizSelect?.addEventListener('change', switchVisualizer);
 toggleRecording?.addEventListener(
   'change', () => recordingOn = !recordingOn
 );
+showDrawer?.addEventListener('click', () => {
+  if(drawer) (drawer as HTMLElement).style.display = 'block';
+});
+hideDrawer?.addEventListener('click', () => {
+  if(drawer) (drawer as HTMLElement).style.display = 'none'; 
+});
+bgColorPicker?.addEventListener('change', (evt: Event) => {
+  const target = evt.target as HTMLInputElement;
+  if(scene && target) scene.background = new Color(target.value);
+});
+['lightX', 'lightY', 'lightZ'].forEach(axis => {
+  const control = document.getElementById(axis);
+  if(control){
+    control.addEventListener('input', (evt: Event) => {
+      const target = evt.target as HTMLInputElement;
+      const val = parseInt(target.value);
+      const text = document.getElementById(`${axis}Value`);
+      if(text) text.textContent = `${val}`;
+      
+      updateSceneLighting(scene, axis, val);
+    });
+  }
+});
 
+// 3d stuff setup
 const { renderer, scene, camera } = initializeScene((canvasContainer as HTMLCanvasElement));
 
 // stuff has loaded, hide loading message
