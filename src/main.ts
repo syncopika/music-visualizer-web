@@ -91,8 +91,23 @@ class SceneManager {
     renderer.render(scene, camera);    
   }
   
-  // TODO: be able to update lighting here
-  // TODO: be able to update scene background color here
+  // be able to update lighting here
+  updateSceneLighting(axis: string, val: number){
+    if(this.light){
+      if(axis === 'lightX'){
+        this.light.position.x = val;
+      }else if(axis === 'lightY'){
+        this.light.position.y = val;
+      }else if(axis === 'lightZ'){
+        this.light.position.z = val;
+      }
+    }
+  }
+  
+  // be able to update scene background color here
+  updateSceneBackgroundColor(color: string){
+    if(this.scene) this.scene.background = new Color(color);
+  }
 }
 
 // stuff for canvas recording
@@ -218,20 +233,6 @@ function switchVisualizer(evt: Event){
   }
 }
 
-// assuming only one light
-function updateSceneLighting(scene: Scene, axis: string, val: number){
-  const light = scene.children.find(x => x.type === 'SpotLight');
-  if(light){
-    if(axis === 'lightX'){
-      light.position.x = val;
-    }else if(axis === 'lightY'){
-      light.position.y = val;
-    }else if(axis === 'lightZ'){
-      light.position.z = val;
-    }
-  }
-}
-
 // start
 if(importAudioBtn) audioManager.setupInput((importAudioBtn as HTMLButtonElement));
 audioManager.loadExample();
@@ -240,19 +241,24 @@ audioManager.loadExample();
 playBtn?.addEventListener('click', playVisualization);
 stopBtn?.addEventListener('click', stopVisualization);
 vizSelect?.addEventListener('change', switchVisualizer);
+
 toggleRecording?.addEventListener(
   'change', () => recordingOn = !recordingOn
 );
+
 showDrawer?.addEventListener('click', () => {
   if(drawer) (drawer as HTMLElement).style.display = 'block';
 });
+
 hideDrawer?.addEventListener('click', () => {
   if(drawer) (drawer as HTMLElement).style.display = 'none'; 
 });
+
 bgColorPicker?.addEventListener('change', (evt: Event) => {
   const target = evt.target as HTMLInputElement;
-  if(scene && target) scene.background = new Color(target.value);
+  if(sceneManager && target) sceneManager.updateSceneBackgroundColor(target.value);
 });
+
 ['lightX', 'lightY', 'lightZ'].forEach(axis => {
   const control = document.getElementById(axis);
   if(control){
@@ -261,8 +267,7 @@ bgColorPicker?.addEventListener('change', (evt: Event) => {
       const val = parseInt(target.value);
       const text = document.getElementById(`${axis}Value`);
       if(text) text.textContent = `${val}`;
-      
-      updateSceneLighting(scene, axis, val);
+      if(sceneManager) sceneManager.updateSceneLighting(axis, val);
     });
   }
 });
