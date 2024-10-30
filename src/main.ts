@@ -1,14 +1,9 @@
 import { 
-  Scene, 
-  Color, 
-  SpotLight, 
-  Camera,
-  PerspectiveCamera,
   WebGLRenderer,
-  PCFSoftShadowMap,
   Clock,
 } from 'three';
 
+import { SceneManager } from './SceneManager';
 import { AudioManager } from './AudioManager';
 
 // visualizers
@@ -30,7 +25,7 @@ let mediaRecorder: MediaRecorder | null = null;
 let capturedVideoChunks: Blob[] = [];
 
 const audioManager = new AudioManager();
-const clock = new Clock();
+const clock = new Clock(); // TODO: move this to scene manager
 
 // html elements
 const importAudioBtn = document.getElementById('importAudio');
@@ -45,70 +40,7 @@ const drawer = document.querySelector('.drawer');
 const showDrawer = document.getElementById('showDrawer');
 const hideDrawer = document.getElementById('hideDrawer');
 const bgColorPicker = document.getElementById('bgColorPicker');
-
-class SceneManager {
-  scene: Scene;
-  renderer: WebGLRenderer;
-  camera: Camera;
-  light: SpotLight;
-  
-  constructor(container: HTMLCanvasElement){
-    const scene = new Scene();
-    scene.background = new Color(0x111e37); //new Color(0xeeeeee);
-    this.scene = scene;
-    
-    const renderer = new WebGLRenderer({antialias: true});
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = PCFSoftShadowMap;
-    container.appendChild(renderer.domElement);
-    this.renderer = renderer;
-    
-    const fov = 60;
-    const camera = new PerspectiveCamera(
-      fov, 
-      container.clientWidth / container.clientHeight, 
-      0.01, 
-      1000
-    );
-      
-    camera.position.set(0, 2, 8);
-    scene.add(camera);
-    this.camera = camera;    
-    
-    // https://discourse.threejs.org/t/upgraded-to-latest-r160-and-my-lighting-has-changed/59879
-    const light = new SpotLight(); //0x34fcc5);
-    light.position.set(0, 20, 0);
-    light.castShadow = true;
-    light.shadow.mapSize.width = 1024;
-    light.shadow.mapSize.height = 1024;
-    light.intensity = 5;
-    light.distance = 0;
-    light.decay = 0; //0.1;
-    scene.add(light);
-    this.light = light;
-    
-    renderer.render(scene, camera);    
-  }
-  
-  // be able to update lighting here
-  updateSceneLighting(axis: string, val: number){
-    if(this.light){
-      if(axis === 'lightX'){
-        this.light.position.x = val;
-      }else if(axis === 'lightY'){
-        this.light.position.y = val;
-      }else if(axis === 'lightZ'){
-        this.light.position.z = val;
-      }
-    }
-  }
-  
-  // be able to update scene background color here
-  updateSceneBackgroundColor(color: string){
-    if(this.scene) this.scene.background = new Color(color);
-  }
-}
+const fftSizeDropdown = document.getElementById('fftSizeSelect');
 
 // stuff for canvas recording
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
@@ -237,7 +169,7 @@ function switchVisualizer(evt: Event){
 if(importAudioBtn) audioManager.setupInput((importAudioBtn as HTMLButtonElement));
 audioManager.loadExample();
 
-// setup some event listeners for buttons
+// setup some event listeners for buttons and inputs
 playBtn?.addEventListener('click', playVisualization);
 stopBtn?.addEventListener('click', stopVisualization);
 vizSelect?.addEventListener('change', switchVisualizer);
@@ -257,6 +189,12 @@ hideDrawer?.addEventListener('click', () => {
 bgColorPicker?.addEventListener('change', (evt: Event) => {
   const target = evt.target as HTMLInputElement;
   if(sceneManager && target) sceneManager.updateSceneBackgroundColor(target.value);
+});
+
+fftSizeDropdown?.addEventListener('change', (evt: Event) => {
+  const target = evt.target as HTMLSelectElement;
+  const newFftSize = parseInt(target.selectedOptions[0].text);
+  if(audioManager) audioManager.changeFftSize(newFftSize);
 });
 
 ['lightX', 'lightY', 'lightZ'].forEach(axis => {

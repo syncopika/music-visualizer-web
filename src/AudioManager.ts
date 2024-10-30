@@ -112,4 +112,9 @@ export class AudioManager {
       if(this.audioFileUrl) this.loadAudioFile(this.audioFileUrl);
     }
   }
+  
+  changeFftSize(newFftSize: number){
+    this.analyser.fftSize = newFftSize;
+    //console.log(this.analyser.fftSize);
+  }
 }
