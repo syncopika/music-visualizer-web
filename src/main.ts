@@ -1,6 +1,5 @@
 import { 
   WebGLRenderer,
-  Clock,
 } from 'three';
 
 import { SceneManager } from './SceneManager';
@@ -25,7 +24,6 @@ let mediaRecorder: MediaRecorder | null = null;
 let capturedVideoChunks: Blob[] = [];
 
 const audioManager = new AudioManager();
-const clock = new Clock(); // TODO: move this to scene manager
 
 // html elements
 const importAudioBtn = document.getElementById('importAudio');
@@ -126,38 +124,31 @@ function switchVisualizer(evt: Event){
   
   switch (selected) {
     case 'waveform':
-      visualizer = new Waveform('waveform', clock, scene, audioManager, 50);
+      visualizer = new Waveform('waveform', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     case 'circular-cubes':
-      visualizer = new CircularCubes('circular-cubes', clock, scene, audioManager, 50);
+      visualizer = new CircularCubes('circular-cubes', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     case 'starfield':
-      visualizer = new Starfield(
-        'starfield',
-        scene,
-        camera,
-        renderer,
-        audioManager,
-        80
-      );
+      visualizer = new Starfield('starfield', sceneManager, audioManager, 80);
       visualizer.init();
       break;
     case 'pixels':
-      visualizer = new Pixels('pixels', scene, audioManager);
+      visualizer = new Pixels('pixels', sceneManager, audioManager);
       visualizer.init();    
       break;
     case 'blob':
-      visualizer = new AnimatedBlob('blob', renderer, clock, scene, audioManager);
+      visualizer = new AnimatedBlob('blob', sceneManager, audioManager);
       visualizer.init();
       break;
     case 'spheres':
-      visualizer = new Spheres('spheres', clock, scene, audioManager, 50);
+      visualizer = new Spheres('spheres', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     case 'waves':
-      visualizer = new Waves('waves', clock, scene, audioManager, 50);
+      visualizer = new Waves('waves', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     default:
@@ -219,7 +210,7 @@ const camera = sceneManager.camera;
 // stuff has loaded, hide loading message
 if(loadingMsg) loadingMsg.style.display = 'none';
 
-visualizer = new Waveform('waveform', clock, scene, audioManager, 50);
+visualizer = new Waveform('waveform', sceneManager, audioManager, 50);
 visualizer.init();
 
 update();

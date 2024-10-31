@@ -1,30 +1,26 @@
 import { VisualizerBase } from './VisualizerBase';
-
+import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
 import {
-  Scene, 
   Mesh,
   BoxGeometry,
   MeshPhongMaterial,
   Vector3,
   Group,
-  Clock,
 } from 'three';
 
 export class Waveform extends VisualizerBase {
   numObjects: number;
   visualization: Group;
-  clock: Clock;
   lastTime: number;
   moveTo: number[];
   
-  constructor(name: string, clock: Clock, scene: Scene, audioManager: AudioManager, size: number){
-    super(name, scene, audioManager);
+  constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
+    super(name, sceneManager, audioManager);
     this.numObjects = size;
     this.visualization = new Group();
-    this.clock = clock;
-    this.lastTime = clock.getElapsedTime();
+    this.lastTime = this.clock.getElapsedTime();
     this.moveTo = [];
   }
   

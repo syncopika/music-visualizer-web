@@ -1,5 +1,5 @@
 import { VisualizerBase } from './VisualizerBase';
-
+import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
 import {
@@ -8,7 +8,6 @@ import {
   ShaderMaterial,
   DataTexture,
   PlaneGeometry,
-  Scene,
 } from 'three';
 
 export class Pixels extends VisualizerBase {  
@@ -16,8 +15,8 @@ export class Pixels extends VisualizerBase {
   fragmentShader: string;
   uniforms;
   
-  constructor(name: string, scene: Scene, audioManager: AudioManager){
-    super(name, scene, audioManager);
+  constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager){
+    super(name, sceneManager, audioManager);
     
     // borrowed from:
     // https://github.com/mrdoob/three.js/blob/master/examples/webaudio_visualizer.html

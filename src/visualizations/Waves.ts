@@ -1,38 +1,33 @@
 import { VisualizerBase } from './VisualizerBase';
-
+import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
 import {
-  Scene, 
   Mesh,
   BoxGeometry,
   MeshPhongMaterial,
   Vector3,
   Group,
-  Clock,
 } from 'three';
 
 export class Waves extends VisualizerBase {
   numObjects: number;
   visualization: Group;
   columns: number;
-  clock: Clock;
   lastTime: number;
   scaleTo: number[];
   
   constructor(
     name: string, 
-    clock: Clock, 
-    scene: Scene, 
+    sceneManager: SceneManager,
     audioManager: AudioManager, 
     size: number,
     columns?: number
   ){
-    super(name, scene, audioManager);
+    super(name, sceneManager, audioManager);
     this.numObjects = size;
     this.visualization = new Group();
-    this.clock = clock;
-    this.lastTime = clock.getElapsedTime();
+    this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
     this.columns = columns || 10;
   }

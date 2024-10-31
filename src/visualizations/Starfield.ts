@@ -1,16 +1,13 @@
 import { VisualizerBase } from './VisualizerBase';
-
+import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
-import { 
-  Scene,
-  Camera,
+import {
   Mesh,
   Vector3,
   Group,
   Quaternion,
   Vector2,
-  WebGLRenderer,
   MeshStandardMaterial,
 } from 'three';
 
@@ -25,20 +22,13 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 interface GLTFFile {
   asset: Record<string, string>,
   scene: Group,
-  // animations: [],
-  // parser: GLTFParser,
-  // scenes: Group[],
-  // userData: Record<string, string>
 }
 
 export class Starfield extends VisualizerBase {
   numObjects: number;
   visualization: Group;
   loader: GLTFLoader;
-  camera: Camera;
-  renderer: WebGLRenderer
-  composer: EffectComposer;
-  //starModel: Mesh;
+  composer: EffectComposer; // TODO: should effects be within SceneManager so we can apply to any visualizer?
   xMin: number;
   xMax: number;
   yMin: number;
@@ -47,9 +37,7 @@ export class Starfield extends VisualizerBase {
   
   constructor(
     name: string,
-    scene: Scene,
-    camera: Camera,
-    renderer: WebGLRenderer,
+    sceneManager: SceneManager,
     audioManager: AudioManager,
     size: number,
     xMin?: number,
@@ -58,12 +46,10 @@ export class Starfield extends VisualizerBase {
     yMax?: number,
     zMax?: number,
   ){
-    super(name, scene, audioManager);
+    super(name, sceneManager, audioManager);
     this.numObjects = size;
     this.visualization = new Group();
     this.loader = new GLTFLoader();
-    this.camera = camera;
-    this.renderer = renderer;
     this.composer = new EffectComposer(this.renderer);
     this.xMin = xMin || -50;
     this.xMax = xMax || 50;

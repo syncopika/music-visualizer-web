@@ -6,7 +6,7 @@ import {
   PerspectiveCamera,
   WebGLRenderer,
   PCFSoftShadowMap,
-  //Clock,
+  Clock,
 } from 'three';
 
 // TODO: add clock
@@ -15,6 +15,7 @@ export class SceneManager {
   renderer: WebGLRenderer;
   camera: Camera;
   light: SpotLight;
+  clock: Clock;
   
   constructor(container: HTMLCanvasElement){
     const scene = new Scene();
@@ -51,6 +52,8 @@ export class SceneManager {
     light.decay = 0; //0.1;
     scene.add(light);
     this.light = light;
+    
+    this.clock = new Clock();
     
     renderer.render(scene, camera);    
   }

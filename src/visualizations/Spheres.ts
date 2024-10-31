@@ -1,30 +1,26 @@
 import { VisualizerBase } from './VisualizerBase';
-
+import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
 import {
-  Scene, 
   Mesh,
   SphereGeometry,
   MeshPhongMaterial,
   Vector3,
   Group,
-  Clock,
 } from 'three';
 
 export class Spheres extends VisualizerBase {
   numObjects: number;
   visualization: Group;
-  clock: Clock;
   lastTime: number;
   scaleTo: number[];
   
-  constructor(name: string, clock: Clock, scene: Scene, audioManager: AudioManager, size: number){
-    super(name, scene, audioManager);
+  constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
+    super(name, sceneManager, audioManager);
     this.numObjects = size;
     this.visualization = new Group();
-    this.clock = clock;
-    this.lastTime = clock.getElapsedTime();
+    this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
   }
   
@@ -34,7 +30,7 @@ export class Spheres extends VisualizerBase {
       if(
         !c.type.toLowerCase().includes('camera') && 
         !c.type.toLowerCase().includes('light'))
-      {  
+      {
         this.scene.remove(c);
       }
     });
