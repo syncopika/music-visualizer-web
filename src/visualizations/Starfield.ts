@@ -102,7 +102,10 @@ export class Starfield extends VisualizerBase {
     const bufferLen = this.audioManager.analyser.frequencyBinCount;
 
     const numObjects = this.numObjects;
-    const increment = Math.floor(bufferLen / numObjects);
+    
+    // if a small analyser.fftSize is chosen, frequencyBinCount will be small as well and
+    // so Math.floor(bufferLen / numObjects) may end up being 0
+    const increment = Math.max(1, Math.floor(bufferLen / numObjects));
     
     for(let i = 0; i < bufferLen; i += increment){
       const star = starModel.clone();

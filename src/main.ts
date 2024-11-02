@@ -38,7 +38,9 @@ const drawer = document.querySelector('.drawer');
 const showDrawer = document.getElementById('showDrawer');
 const hideDrawer = document.getElementById('hideDrawer');
 const bgColorPicker = document.getElementById('bgColorPicker');
+const vizColorPicker = document.getElementById('vizColorPicker');
 const fftSizeDropdown = document.getElementById('fftSizeSelect');
+const toggleWireframeCheckbox = document.getElementById('toggleWireframeInput');
 
 // stuff for canvas recording
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
@@ -154,6 +156,8 @@ function switchVisualizer(evt: Event){
     default:
       break;
   }
+  
+  if(toggleWireframeCheckbox) (toggleWireframeCheckbox as HTMLInputElement).checked = false;
 }
 
 // start
@@ -182,6 +186,11 @@ bgColorPicker?.addEventListener('change', (evt: Event) => {
   if(sceneManager && target) sceneManager.updateSceneBackgroundColor(target.value);
 });
 
+vizColorPicker?.addEventListener('change', (evt: Event) => {
+  const target = evt.target as HTMLInputElement;
+  if(sceneManager && target) sceneManager.changeVisualizationColor(target.value);
+});
+
 fftSizeDropdown?.addEventListener('change', (evt: Event) => {
   const target = evt.target as HTMLSelectElement;
   const newFftSize = parseInt(target.selectedOptions[0].text);
@@ -199,6 +208,10 @@ fftSizeDropdown?.addEventListener('change', (evt: Event) => {
       if(sceneManager) sceneManager.updateSceneLighting(axis, val);
     });
   }
+});
+
+toggleWireframeCheckbox?.addEventListener('change', () => {
+  sceneManager.toggleWireframe();
 });
 
 // 3d stuff setup

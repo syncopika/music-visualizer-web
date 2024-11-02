@@ -7,6 +7,8 @@ import {
   WebGLRenderer,
   PCFSoftShadowMap,
   Clock,
+  Mesh,
+  MeshStandardMaterial,
 } from 'three';
 
 // TODO: add clock
@@ -74,5 +76,41 @@ export class SceneManager {
   // be able to update scene background color here
   updateSceneBackgroundColor(color: string){
     if(this.scene) this.scene.background = new Color(color);
+  }
+  
+  toggleWireframe(){
+    this.scene.children.forEach(child => {
+      if(child.type === 'Group'){
+        (child.children as Mesh[]).forEach(c => {
+          const meshMaterial = c.material as MeshStandardMaterial;
+          if(meshMaterial){
+            meshMaterial.wireframe = !meshMaterial.wireframe;
+          }else if(c.children){
+            // TODO: recursively apply/unapply wireframe if Group is found
+            (c.children as Mesh[]).forEach(c2 => {
+              const meshMaterial = c2.material as MeshStandardMaterial;
+              meshMaterial.wireframe = !meshMaterial.wireframe;
+            });
+          }
+        });
+      }
+    });
+  }
+  
+  changeVisualizationColor(color: string){
+    this.scene.children.forEach(child => {
+      if(child.type === 'Group'){
+        (child.children as Mesh[]).forEach(c => {
+          if(c.material){
+            (c.material as MeshStandardMaterial).color = new Color(color);
+          }else if(c.children){
+            // TODO: recursively apply new color to children if Group is found
+            (c.children as Mesh[]).forEach(c2 => {
+              (c2.material as MeshStandardMaterial).color = new Color(color);
+            });
+          }
+        });
+      }
+    });
   }
 }

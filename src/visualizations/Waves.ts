@@ -44,8 +44,12 @@ export class Waves extends VisualizerBase {
     });
     
     const bufferLen = this.audioManager.analyser.frequencyBinCount;
+    console.log(bufferLen);
     const numObjects = this.numObjects;
-    const increment = Math.floor(bufferLen / numObjects);
+    
+    // if a small analyser.fftSize is chosen, frequencyBinCount will be small as well and
+    // so Math.floor(bufferLen / numObjects) may end up being 0
+    const increment = Math.max(1, Math.floor(bufferLen / numObjects));
 
     function createVisualizationCube(){
       const boxGeometry = new BoxGeometry(0.2, 0.4, 0.2);
