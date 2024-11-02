@@ -115,6 +115,8 @@ export class AudioManager {
   
   changeFftSize(newFftSize: number){
     this.analyser.fftSize = newFftSize;
-    //console.log(this.analyser.fftSize);
+    
+    // also update buffer accordingly
+    this.buffer = new Uint8Array(this.analyser.frequencyBinCount);
   }
 }
