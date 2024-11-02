@@ -112,4 +112,11 @@ export class AudioManager {
       if(this.audioFileUrl) this.loadAudioFile(this.audioFileUrl);
     }
   }
+  
+  changeFftSize(newFftSize: number){
+    this.analyser.fftSize = newFftSize;
+    
+    // also update buffer accordingly
+    this.buffer = new Uint8Array(this.analyser.frequencyBinCount);
+  }
 }

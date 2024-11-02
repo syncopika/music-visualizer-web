@@ -1,14 +1,8 @@
 import { 
-  Scene, 
-  Color, 
-  SpotLight, 
-  Camera,
-  PerspectiveCamera,
   WebGLRenderer,
-  PCFSoftShadowMap,
-  Clock,
 } from 'three';
 
+import { SceneManager } from './SceneManager';
 import { AudioManager } from './AudioManager';
 
 // visualizers
@@ -21,13 +15,6 @@ import { Blob as AnimatedBlob } from './visualizations/Blob';
 import { Spheres } from './visualizations/Spheres';
 import { Waves } from './visualizations/Waves';
 
-// important scene-related objects we might need to pass around
-interface ISceneComponents {
-  renderer: WebGLRenderer, 
-  scene: Scene, 
-  camera: Camera
-}
-
 // global variables
 let isPlaying = false;
 let visualizer: VisualizerBase | null = null;
@@ -37,7 +24,6 @@ let mediaRecorder: MediaRecorder | null = null;
 let capturedVideoChunks: Blob[] = [];
 
 const audioManager = new AudioManager();
-const clock = new Clock();
 
 // html elements
 const importAudioBtn = document.getElementById('importAudio');
@@ -52,6 +38,9 @@ const drawer = document.querySelector('.drawer');
 const showDrawer = document.getElementById('showDrawer');
 const hideDrawer = document.getElementById('hideDrawer');
 const bgColorPicker = document.getElementById('bgColorPicker');
+const vizColorPicker = document.getElementById('vizColorPicker');
+const fftSizeDropdown = document.getElementById('fftSizeSelect');
+const toggleWireframeCheckbox = document.getElementById('toggleWireframeInput');
 
 // stuff for canvas recording
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
@@ -100,44 +89,6 @@ function stopCanvasRecord(){
   }
 }
 
-// TODO: maybe have a scene manager so we can more easily change lighting and stuff
-function initializeScene(container: HTMLCanvasElement): ISceneComponents {
-  const scene = new Scene();
-  scene.background = new Color(0x111e37); //new Color(0xeeeeee);
-  
-  const renderer = new WebGLRenderer({antialias: true});
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = PCFSoftShadowMap;
-  container.appendChild(renderer.domElement);
-  
-  const fov = 60;
-  const camera = new PerspectiveCamera(
-    fov, 
-    container.clientWidth / container.clientHeight, 
-    0.01, 
-    1000
-  );
-    
-  camera.position.set(0, 2, 8);
-  scene.add(camera);
-  
-  // https://discourse.threejs.org/t/upgraded-to-latest-r160-and-my-lighting-has-changed/59879
-  const light = new SpotLight(); //0x34fcc5);
-  light.position.set(0, 20, 0);
-  light.castShadow = true;
-  light.shadow.mapSize.width = 1024;
-  light.shadow.mapSize.height = 1024;
-  light.intensity = 5;
-  light.distance = 0;
-  light.decay = 0; //0.1;
-  scene.add(light);
-  
-  renderer.render(scene, camera);
-  
-  return {renderer, scene, camera};
-}
-
 function update(){
   renderer.render(scene, camera);
   requestAnimationFrame(update);
@@ -175,80 +126,77 @@ function switchVisualizer(evt: Event){
   
   switch (selected) {
     case 'waveform':
-      visualizer = new Waveform('waveform', clock, scene, audioManager, 50);
+      visualizer = new Waveform('waveform', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     case 'circular-cubes':
-      visualizer = new CircularCubes('circular-cubes', clock, scene, audioManager, 50);
+      visualizer = new CircularCubes('circular-cubes', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     case 'starfield':
-      visualizer = new Starfield(
-        'starfield',
-        scene,
-        camera,
-        renderer,
-        audioManager,
-        80
-      );
+      visualizer = new Starfield('starfield', sceneManager, audioManager, 80);
       visualizer.init();
       break;
     case 'pixels':
-      visualizer = new Pixels('pixels', scene, audioManager);
+      visualizer = new Pixels('pixels', sceneManager, audioManager);
       visualizer.init();    
       break;
     case 'blob':
-      visualizer = new AnimatedBlob('blob', renderer, clock, scene, audioManager);
+      visualizer = new AnimatedBlob('blob', sceneManager, audioManager);
       visualizer.init();
       break;
     case 'spheres':
-      visualizer = new Spheres('spheres', clock, scene, audioManager, 50);
+      visualizer = new Spheres('spheres', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     case 'waves':
-      visualizer = new Waves('waves', clock, scene, audioManager, 50);
+      visualizer = new Waves('waves', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     default:
       break;
   }
-}
-
-// assuming only one light
-function updateSceneLighting(scene: Scene, axis: string, val: number){
-  const light = scene.children.find(x => x.type === 'SpotLight');
-  if(light){
-    if(axis === 'lightX'){
-      light.position.x = val;
-    }else if(axis === 'lightY'){
-      light.position.y = val;
-    }else if(axis === 'lightZ'){
-      light.position.z = val;
-    }
-  }
+  
+  if(toggleWireframeCheckbox) (toggleWireframeCheckbox as HTMLInputElement).checked = false;
 }
 
 // start
 if(importAudioBtn) audioManager.setupInput((importAudioBtn as HTMLButtonElement));
 audioManager.loadExample();
 
-// setup some event listeners for buttons
+// setup some event listeners for buttons and inputs
 playBtn?.addEventListener('click', playVisualization);
 stopBtn?.addEventListener('click', stopVisualization);
 vizSelect?.addEventListener('change', switchVisualizer);
+
 toggleRecording?.addEventListener(
   'change', () => recordingOn = !recordingOn
 );
+
 showDrawer?.addEventListener('click', () => {
   if(drawer) (drawer as HTMLElement).style.display = 'block';
 });
+
 hideDrawer?.addEventListener('click', () => {
   if(drawer) (drawer as HTMLElement).style.display = 'none'; 
 });
+
 bgColorPicker?.addEventListener('change', (evt: Event) => {
   const target = evt.target as HTMLInputElement;
-  if(scene && target) scene.background = new Color(target.value);
+  if(sceneManager && target) sceneManager.updateSceneBackgroundColor(target.value);
 });
+
+vizColorPicker?.addEventListener('change', (evt: Event) => {
+  const target = evt.target as HTMLInputElement;
+  if(sceneManager && target) sceneManager.changeVisualizationColor(target.value);
+});
+
+fftSizeDropdown?.addEventListener('change', (evt: Event) => {
+  const target = evt.target as HTMLSelectElement;
+  const newFftSize = parseInt(target.selectedOptions[0].text);
+  if(audioManager) audioManager.changeFftSize(newFftSize);
+});
+
 ['lightX', 'lightY', 'lightZ'].forEach(axis => {
   const control = document.getElementById(axis);
   if(control){
@@ -257,19 +205,25 @@ bgColorPicker?.addEventListener('change', (evt: Event) => {
       const val = parseInt(target.value);
       const text = document.getElementById(`${axis}Value`);
       if(text) text.textContent = `${val}`;
-      
-      updateSceneLighting(scene, axis, val);
+      if(sceneManager) sceneManager.updateSceneLighting(axis, val);
     });
   }
 });
 
+toggleWireframeCheckbox?.addEventListener('change', () => {
+  sceneManager.toggleWireframe();
+});
+
 // 3d stuff setup
-const { renderer, scene, camera } = initializeScene((canvasContainer as HTMLCanvasElement));
+const sceneManager = new SceneManager((canvasContainer as HTMLCanvasElement)); // initializes a scene
+const renderer = sceneManager.renderer;
+const scene = sceneManager.scene;
+const camera = sceneManager.camera;
 
 // stuff has loaded, hide loading message
 if(loadingMsg) loadingMsg.style.display = 'none';
 
-visualizer = new Waveform('waveform', clock, scene, audioManager, 50);
+visualizer = new Waveform('waveform', sceneManager, audioManager, 50);
 visualizer.init();
 
 update();

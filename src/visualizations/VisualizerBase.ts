@@ -1,18 +1,30 @@
 import { 
   Scene,
+  Camera,
+  Clock,
+  WebGLRenderer,
 } from 'three';
 
+import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
 export class VisualizerBase {
   name: string;
-  scene: Scene;
+  sceneManager: SceneManager;
   audioManager: AudioManager;
+  clock: Clock;
+  scene: Scene;
+  camera: Camera;
+  renderer: WebGLRenderer;
   
-  constructor(name: string, scene: Scene, audioManager: AudioManager){
-    this.scene = scene;
+  constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager){
     this.name = name;
+    this.sceneManager = sceneManager;
     this.audioManager = audioManager;
+    this.scene = sceneManager.scene;
+    this.clock = sceneManager.clock;
+    this.camera = sceneManager.camera;
+    this.renderer = sceneManager.renderer;
   }
 
   init(){

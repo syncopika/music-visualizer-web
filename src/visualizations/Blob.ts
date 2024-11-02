@@ -3,40 +3,31 @@
 // https://www.youtube.com/watch?v=qDIF2z_VtHs (How To Create A 3D Audio Visualizer Using Three.js)
 
 import { VisualizerBase } from './VisualizerBase';
-
+import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
 import {
-  Scene, 
   Mesh,
   IcosahedronGeometry,
   ShaderMaterial,
-  Clock,
   Vector2,
-  WebGLRenderer,
 } from 'three';
 
 export class Blob extends VisualizerBase {
-  clock: Clock;
   lastTime: number;
   vertexShader: string;
   fragmentShader: string;
   visualization: Mesh;
-  renderer: WebGLRenderer;
   uniforms;
   
   constructor(
     name: string, 
-    renderer: WebGLRenderer, 
-    clock: Clock, 
-    scene: Scene, 
+    sceneManager: SceneManager,
     audioManager: AudioManager
   ){
-    super(name, scene, audioManager);
+    super(name, sceneManager, audioManager);
     
-    this.renderer = renderer;
-    this.clock = clock;
-    this.lastTime = clock.getElapsedTime();
+    this.lastTime = this.clock.getElapsedTime();
     
     // shaders for the blob
     // cool thread: https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
@@ -226,15 +217,6 @@ export class Blob extends VisualizerBase {
     
     (this.visualization.material as ShaderMaterial).uniforms.u_time.value = elapsedTime;
     (this.visualization.material as ShaderMaterial).uniforms.u_frequency.value = avgFreq;
-    
-    /*
-    const timeInterval = 0.02;
-    
-    if(elapsedTime - this.lastTime >= timeInterval){
-      this.lastTime = elapsedTime;
-    }else{
-      const lerpAmount = (elapsedTime - this.lastTime) / timeInterval;
-    }*/
     
     this.visualization.rotateY(Math.PI / 2500);
   }

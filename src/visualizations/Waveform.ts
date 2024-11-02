@@ -1,30 +1,26 @@
 import { VisualizerBase } from './VisualizerBase';
-
+import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
 import {
-  Scene, 
   Mesh,
   BoxGeometry,
   MeshPhongMaterial,
   Vector3,
   Group,
-  Clock,
 } from 'three';
 
 export class Waveform extends VisualizerBase {
   numObjects: number;
   visualization: Group;
-  clock: Clock;
   lastTime: number;
   moveTo: number[];
   
-  constructor(name: string, clock: Clock, scene: Scene, audioManager: AudioManager, size: number){
-    super(name, scene, audioManager);
+  constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
+    super(name, sceneManager, audioManager);
     this.numObjects = size;
     this.visualization = new Group();
-    this.clock = clock;
-    this.lastTime = clock.getElapsedTime();
+    this.lastTime = this.clock.getElapsedTime();
     this.moveTo = [];
   }
   
@@ -42,7 +38,11 @@ export class Waveform extends VisualizerBase {
     const bufferLen = this.audioManager.analyser.frequencyBinCount;
 
     const numObjects = this.numObjects;
-    const increment = Math.floor(bufferLen / numObjects);
+    
+    // if a small analyser.fftSize is chosen, frequencyBinCount will be small as well and
+    // so Math.floor(bufferLen / numObjects) may end up being 0
+    const increment = Math.max(1, Math.floor(bufferLen / numObjects));
+    
     const xIncrement = 0.93;
     let xPos = -25;
 
