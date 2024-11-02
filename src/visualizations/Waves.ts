@@ -80,7 +80,7 @@ export class Waves extends VisualizerBase {
         // the initial z position of each cube, which we can use
         // when resetting z position
         // @ts-expect-error: TS2339
-        newCube.initialZPos = currZ;
+        newCube.initialZPos = currZ; // TODO: this is not right I think. maybe take the world position instead and record/use that (also record this value after adding to parent?)
 
         newCol.add(newCube);
         
@@ -162,7 +162,7 @@ export class Waves extends VisualizerBase {
         if(cube.position.z > this.camera.position.z + 15){
           //cube.material.color = new Color('#000000');
           // @ts-expect-error: TS2339
-          cube.position.z = cube.initialZPos;
+          cube.position.z = cube.initialZPos; // TODO: should be initial world pos
         }
       }
     }
