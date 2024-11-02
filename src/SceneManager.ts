@@ -11,7 +11,6 @@ import {
   MeshStandardMaterial,
 } from 'three';
 
-// TODO: add clock
 export class SceneManager {
   scene: Scene;
   renderer: WebGLRenderer;
