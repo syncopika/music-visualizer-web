@@ -40,6 +40,8 @@ export class Waves extends VisualizerBase {
     this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
     this.columns = columns || 15;
+    
+    // TODO: make these properties configurable by user
     this.zSeparation = -6; // how separated the cubes are along the z-axis
     this.xSeparation = 3; // how separated the cubes are along the x-axis
   }
