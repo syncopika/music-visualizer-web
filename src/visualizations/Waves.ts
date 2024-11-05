@@ -2,12 +2,20 @@ import { VisualizerBase } from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
+/* 
+ideas:
+- opacity of cubes depends on distance to camera. the closer, the more transparent
+- cube color gradient based on y-pos
+
+*/
+
 import {
   Mesh,
   BoxGeometry,
   MeshPhongMaterial,
   Vector3,
   Group,
+  //Color,
 } from 'three';
 
 export class Waves extends VisualizerBase {
@@ -16,6 +24,8 @@ export class Waves extends VisualizerBase {
   columns: number;
   lastTime: number;
   scaleTo: number[];
+  zSeparation: number;
+  xSeparation: number;
   
   constructor(
     name: string, 
@@ -30,6 +40,10 @@ export class Waves extends VisualizerBase {
     this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
     this.columns = columns || 15;
+    
+    // TODO: make these properties configurable by user
+    this.zSeparation = -6; // how separated the cubes are along the z-axis
+    this.xSeparation = 3; // how separated the cubes are along the x-axis
   }
   
   init(){
@@ -43,15 +57,10 @@ export class Waves extends VisualizerBase {
       }
     });
     
-    const bufferLen = this.audioManager.analyser.frequencyBinCount;
     const numObjects = this.numObjects;
-    
-    // if a small analyser.fftSize is chosen, frequencyBinCount will be small as well and
-    // so Math.floor(bufferLen / numObjects) may end up being 0
-    const increment = Math.max(1, Math.floor(bufferLen / numObjects));
 
     function createVisualizationCube(): Mesh {
-      const boxGeometry = new BoxGeometry(0.2, 0.4, 0.2);
+      const boxGeometry = new BoxGeometry(0.1, 0.2, 0.1);
       const boxMaterial = new MeshPhongMaterial({color: '#ffffdd'}); // TODO: color gradient?
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;
@@ -59,42 +68,36 @@ export class Waves extends VisualizerBase {
       return box;
     }
     
-    let currX = -20;
+    let currZ = 0;
     
-    for(let c = 0; c < this.columns; c++){
-      const newCol = new Group();
+    for(let i = 0; i < numObjects; i++){
+      const newRow = new Group();
       
-      let currZ = 0;
+      let currX = -20;
       
-      // TODO:
-      // set column colors as gradient?
-      
-      for(let i = 0; i < bufferLen; i += increment){
+      for(let j = 0; j < this.columns; j++){
         const newCube = createVisualizationCube();
         
         newCube.position.x = currX;
         newCube.position.z = currZ;
-        newCube.position.y = 0;//Math.sin(Math.PI * deg / 180) * maxY;
         
-        // gonna do something a bit hacky here so we can record
-        // the initial z position of each cube, which we can use
-        // when resetting z position
+        // hacky but helpful to record initial y pos to use when determining next y position
         // @ts-expect-error: TS2339
-        newCube.initialZPos = currZ; // TODO: this is not right I think. maybe take the world position instead and record/use that (also record this value after adding to parent?)
-
-        newCol.add(newCube);
+        newCube.intialYPos = -5;
         
-        currZ -= 10;
+        newRow.add(newCube);
+        
+        currX += this.xSeparation;
       }
       
-      this.visualization.add(newCol);
+      currZ += this.zSeparation;
       
-      currX += 3;
+      this.visualization.add(newRow);
     }
     
     this.scene.add(this.visualization);
-    this.visualization.position.y -= 5;
-    //this.visualization.rotateY(Math.PI / 2);
+    
+    this.visualization.position.y -= 2; // TODO: make y pos configurable?
   }
   
   update(){
@@ -104,18 +107,21 @@ export class Waves extends VisualizerBase {
     const buffer = this.audioManager.buffer;
     const numObjects = this.numObjects;
     const increment = Math.floor(bufferLength / numObjects);
+    const rows = this.visualization.children;
     
-    this.audioManager.analyser.getByteFrequencyData(buffer); //getByteTimeDomainData is cool too! :D
+    this.audioManager.analyser.getByteTimeDomainData(buffer);
     
     const scaleToIsEmpty = this.scaleTo.length === 0;
-    const timeInterval = 0.02;
+    const timeInterval = 0.08;
+    const factor = 12;
     
     if(elapsedTime - this.lastTime >= timeInterval){
       this.lastTime = elapsedTime;
       
+      // set up next scaleTo value for each row of cubes
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
-        const newVal = value * 12;
+        const newVal = value * factor;
 
         if(scaleToIsEmpty){
           this.scaleTo.push(newVal);
@@ -125,13 +131,13 @@ export class Waves extends VisualizerBase {
       }
     }else{
       const lerpAmount = (elapsedTime - this.lastTime) / timeInterval;
-      
-      const cols = this.visualization.children;
-      for(const col of cols){
-        for(let i = 0; i < numObjects; i++){
-          const value = buffer[i * increment] / 255;
-          const newVal = value * 12;
-          const obj = col.children[i];
+
+      for(let i = 0; i < numObjects; i++){
+        const value = buffer[i * increment] / 255;
+        const newVal = value * factor;
+        
+        for(let j = 0; j < this.columns; j++){
+          const obj = rows[i].children[j];
           
           let valToScaleTo;
           
@@ -143,8 +149,9 @@ export class Waves extends VisualizerBase {
           }
         
           obj.position.lerpVectors(
-            obj.position, 
-            new Vector3(obj.position.x, valToScaleTo, obj.position.z), 
+            obj.position,
+            // @ts-expect-error: TS2339
+            new Vector3(obj.position.x, valToScaleTo + obj.intialYPos, obj.position.z), 
             lerpAmount,
           );
         }
@@ -152,19 +159,21 @@ export class Waves extends VisualizerBase {
     }
     
     // move all cubes forward
-    const cols = this.visualization.children;
-    for(const col of cols){
-      for(let i = 0; i < numObjects; i++){
-        const cube = col.children[i];
+    rows.forEach((row, idx) => {
+      for(let i = 0; i < this.columns; i++){
+        const cube = row.children[i];
         
-        cube.position.z += 0.04; // TODO: make this configurable by the user
+        cube.position.z += 0.1; // TODO: make this configurable by the user
         
-        if(cube.position.z > this.camera.position.z + 15){
+        if(cube.position.z > this.camera.position.z + 20){
           //cube.material.color = new Color('#000000');
-          // @ts-expect-error: TS2339
-          cube.position.z = cube.initialZPos; // TODO: should be initial world pos
+          if(idx === 0){
+            cube.position.z = rows[rows.length - 1].children[0].position.z + this.zSeparation; // all cubes in a row should have the same z position
+          }else{
+            cube.position.z = rows[idx - 1].children[0].position.z + this.zSeparation;
+          }
         }
       }
-    }
+    });
   }
 }
