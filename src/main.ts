@@ -6,7 +6,11 @@ import { SceneManager } from './SceneManager';
 import { AudioManager } from './AudioManager';
 
 // visualizers
-import { VisualizerBase } from './visualizations/VisualizerBase';
+import { 
+  VisualizerBase, 
+  ConfigurableParameterRange,
+  ConfigurableParameterToggle,
+} from './visualizations/VisualizerBase';
 import { Waveform } from './visualizations/Waveform';
 import { Starfield } from './visualizations/Starfield';
 import { Pixels } from './visualizations/Pixels';
@@ -117,6 +121,88 @@ function stopVisualization(){
   }
 }
 
+function makeBoolToggle(name: string, parameter: ConfigurableParameterToggle): HTMLElement {
+  const div = document.createElement('div');
+  div.className = 'input';
+  div.style.display = 'flex';
+  div.style.alignItems = 'center';
+  
+  const label = document.createElement('label');
+  label.textContent = name;
+  label.htmlFor = `${name}-toggle`;
+  
+  const input = document.createElement('input');
+  input.id = `${name}-toggle`;
+  input.type = 'checkbox';
+  input.checked = parameter.isOn;
+  input.addEventListener('change', () => {
+    parameter.isOn = !parameter.isOn;
+  });
+  
+  div.appendChild(label);
+  div.appendChild(input);
+  
+  return div;
+}
+
+function makeSlider(name: string, parameter: ConfigurableParameterRange): HTMLElement {
+  const div = document.createElement('div');
+  div.className = 'input';
+  div.style.display = 'flex';
+  div.style.alignItems = 'center';
+
+  const label = document.createElement('label');
+  label.textContent = name;
+  label.htmlFor = `${name}-slider`;
+  
+  const currVal = document.createElement('p');
+  currVal.textContent = parameter.value.toString();
+  
+  const input = document.createElement('input');
+  input.id = `${name}-slider`;
+  input.type = 'range';
+  input.value = parameter.value.toString();
+  input.min = parameter.min.toString();
+  input.max = parameter.max.toString();
+  input.step = parameter.step.toString();
+  input.addEventListener('change', (evt: Event) => {
+    const target = evt.target as HTMLInputElement;
+    parameter.value = parseFloat(target.value);
+    currVal.textContent = target.value.toString();
+  });
+  
+  div.appendChild(label);
+  div.appendChild(input);
+  div.appendChild(currVal);
+  
+  return div;
+}
+
+function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
+  // clear visualizer-specific parameter section
+  const paramSection = document.getElementById('visualizerSpecificOptions');
+  paramSection?.replaceChildren();
+  
+  // add current visualizer-specific parameters
+  const params = Array.from(Object.keys(visualizer.configurableParams));
+  params.forEach(p => {
+    const param = visualizer.configurableParams[p];
+    if(param?.doNotShow){
+      return;
+    }
+    
+    if('isOn' in param){
+      // simple on/off toggle
+      const newToggleDiv = makeBoolToggle(p, param);
+      paramSection?.appendChild(newToggleDiv);
+    }else{
+      // slider
+      const newSliderDiv = makeSlider(p, (param as ConfigurableParameterRange));
+      paramSection?.appendChild(newSliderDiv);
+    }
+  });
+}
+
 function switchVisualizer(evt: Event){
   const selected = (evt.target as HTMLSelectElement).value;
   
@@ -124,7 +210,7 @@ function switchVisualizer(evt: Event){
   camera.position.set(0, 2, 8);
   camera.rotation.set(0, 0, 0);
   
-  switch (selected) {
+  switch(selected){
     case 'waveform':
       visualizer = new Waveform('waveform', sceneManager, audioManager, 50);
       visualizer.init();
@@ -158,6 +244,8 @@ function switchVisualizer(evt: Event){
   }
   
   if(toggleWireframeCheckbox) (toggleWireframeCheckbox as HTMLInputElement).checked = false;
+  
+  if(visualizer) displayVisualizerConfigurableParams(visualizer);
 }
 
 // start
