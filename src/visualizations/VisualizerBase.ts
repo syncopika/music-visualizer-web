@@ -8,6 +8,19 @@ import {
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
+export interface ConfigurableParameterRange {
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  doNotShow?: boolean; // in case we still need to figure stuff out but would like to make it user-configurable in the future :)
+}
+
+export interface ConfigurableParameterToggle {
+  isOn: boolean;
+  doNotShow?: boolean;
+}
+
 export class VisualizerBase {
   name: string;
   sceneManager: SceneManager;
@@ -16,6 +29,7 @@ export class VisualizerBase {
   scene: Scene;
   camera: Camera;
   renderer: WebGLRenderer;
+  configurableParams: Record<string, ConfigurableParameterRange | ConfigurableParameterToggle>;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager){
     this.name = name;
@@ -25,6 +39,7 @@ export class VisualizerBase {
     this.clock = sceneManager.clock;
     this.camera = sceneManager.camera;
     this.renderer = sceneManager.renderer;
+    this.configurableParams = {};
   }
 
   init(){

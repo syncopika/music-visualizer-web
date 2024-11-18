@@ -1,6 +1,7 @@
 feature ideas:
 - parameters that can be customized for each visualizer
 - more visualizers
+- add more post-processing effects other than bloom
 
 issues:
 - starfield bloom filter still doesn't seem quite right
