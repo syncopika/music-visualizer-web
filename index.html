@@ -87,7 +87,7 @@
       margin-left: auto;
     }
     
-    #lightingControlHeader {
+    #lightingControlHeader, #visualizerControlHeader {
       padding-left: 10px;
       font-weight: bold;
     }
@@ -121,15 +121,15 @@
       align-items: center;
     }
     
-    .visualizer-section p, select {
+    .visualizerSection p, select {
       display: inline-block;
     }
     
-    .visualizer-section p {
+    .visualizerSection p {
       font-weight: bold;
     }
     
-    .colorPicker, .lightAxis {
+    .input {
       margin: 10px;
       display: flex;
       align-items: center;
@@ -156,7 +156,7 @@
     }
     
   </style>
-  <script type="module" crossorigin src="/music-visualizer-web/assets/index-D6gNbPId.js"></script>
+  <script type="module" crossorigin src="/music-visualizer-web/assets/index-BmPQ61RU.js"></script>
 </head>
 
 <body>
@@ -191,12 +191,12 @@
         </button>
       </div>
       <div id='nonVisualizerSpecificOptions'>
-        <div class='colorPicker'>
+        <div class='input colorPicker'>
           <label for='bgColorPicker'>background color</label>
           <input type='color' id='bgColorPicker' value='#111e37'>
         </div>
         
-        <div class='colorPicker'>
+        <div class='input colorPicker'>
           <label for='vizColorPicker'>visualizer color</label>
           <input type='color' id='vizColorPicker' value=''>
         </div>
@@ -233,19 +233,19 @@
         <div class='lightingControl'>
           <p id='lightingControlHeader'> light controls </p>
           
-          <div class='lightAxis'>
+          <div class='input'>
             <label for='lightX'>x</label>
             <input type='range' id='lightX' value='0' min='-50' max='50'>
             <p id='lightXValue'>0</p>
           </div>
           
-          <div class='lightAxis'>
+          <div class='input'>
             <label for='lightY'>y</label>
             <input type='range' id='lightY' value='20' min='-50' max='50'>
             <p id='lightYValue'>20</p>
           </div>
           
-          <div class='lightAxis'>
+          <div class='input'>
             <label for='lightZ'>z</label>
             <input type='range' id='lightZ' value='0' min='-50' max='50'>
             <p id='lightZValue'>0</p>
@@ -254,6 +254,7 @@
         
       </div>
       
+      <p id='visualizerControlHeader'> visualizer controls </p>
       <div id='visualizerSpecificOptions'>
       </div>
     </div>
@@ -263,7 +264,7 @@
       <input id='fileInput' style='display:none;' type='file' accept='audio/*'>
       <button id='playVisualization'> play </button>
       <button id='stopVisualization'> stop </button>
-      <div class='visualizer-section'>
+      <div class='visualizerSection'>
         <p> visualizer: </p>
         <select id='visualizerChoice'>
           <option> waveform </option>
