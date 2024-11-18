@@ -38,7 +38,7 @@ const vizSelect = document.getElementById('visualizerChoice');
 const toggleRecording = document.getElementById('toggleRecordingCheckbox');
 const loadingMsg = document.getElementById('loadingMsg');
 const drawer = document.querySelector('.drawer');
-//const visualizerOptions = document.getElementById('visualizerSpecificOptions');
+const visualizerOptions = document.getElementById('visualizerSpecificOptions');
 const showDrawer = document.getElementById('showDrawer');
 const hideDrawer = document.getElementById('hideDrawer');
 const bgColorPicker = document.getElementById('bgColorPicker');
@@ -180,11 +180,10 @@ function makeSlider(name: string, parameter: ConfigurableParameterRange): HTMLEl
 
 function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
   // clear visualizer-specific parameter section
-  const paramSection = document.getElementById('visualizerSpecificOptions');
-  paramSection?.replaceChildren();
+  visualizerOptions?.replaceChildren();
   
   // add current visualizer-specific parameters
-  const params = Array.from(Object.keys(visualizer.configurableParams));
+  const params = Object.keys(visualizer.configurableParams);
   params.forEach(p => {
     const param = visualizer.configurableParams[p];
     if(param?.doNotShow){
@@ -194,11 +193,11 @@ function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
     if('isOn' in param){
       // simple on/off toggle
       const newToggleDiv = makeBoolToggle(p, param);
-      paramSection?.appendChild(newToggleDiv);
+      visualizerOptions?.appendChild(newToggleDiv);
     }else{
       // slider
       const newSliderDiv = makeSlider(p, (param as ConfigurableParameterRange));
-      paramSection?.appendChild(newSliderDiv);
+      visualizerOptions?.appendChild(newSliderDiv);
     }
   });
 }
