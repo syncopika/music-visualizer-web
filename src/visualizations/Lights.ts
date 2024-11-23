@@ -1,4 +1,7 @@
-import { VisualizerBase } from './VisualizerBase';
+import { 
+  VisualizerBase,
+  ConfigurableParameterRange,
+} from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
@@ -23,6 +26,7 @@ export class Lights extends VisualizerBase {
   lastTime: number;
   scaleTo: number[];
   composer: EffectComposer;
+  bloomPass: UnrealBloomPass;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
@@ -31,6 +35,13 @@ export class Lights extends VisualizerBase {
     this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
     this.composer = new EffectComposer(this.renderer);
+    
+    this.configurableParams = {
+      'bloomStrength': {value: 0.8, min: 0, max: 2.0, step: 0.1},
+      'bloomRadius': {value: 1.0, min: 0, max: 2.0, step: 0.1},
+      'bloomThreshold': {value: 0.1, min: 0, max: 2.0, step: 0.1},
+      'speed': {value: 20, min: 1, max: 40, step: 1}, // TODO: this is actually inverted atm lol - smaller value == faster
+    };
   }
   
   init(){
@@ -51,7 +62,7 @@ export class Lights extends VisualizerBase {
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
     
-    const createVisualizationSphere = (position: Vector3) => {
+    const createVisualizationSphere = () => {
       const geometry = new SphereGeometry(10, 28, 16);
       const material = new MeshStandardMaterial({color: '#2ff109', transparent: true});
       const sphere = new Mesh(geometry, material);
@@ -68,6 +79,8 @@ export class Lights extends VisualizerBase {
       // give the sphere a random velocity
       const randVelocity = new Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, 1);
       randVelocity.normalize();
+      
+      // @ts-ignore TS2339
       sphere.velocity = randVelocity;
       
       return sphere;
@@ -75,7 +88,7 @@ export class Lights extends VisualizerBase {
     
     const skeletonGeometry = new SphereGeometry(15, 32, 16);
     
-    // try Poisson disk sampling to distribute the spheres so none of them get placed too close to another
+    // try Poisson disk sampling to distribute the spheres so none of them get placed too close to another?
     // http://devmag.org.za/2009/05/03/poisson-disk-sampling/
     // https://www.jasondavies.com/poisson-disc/
     for(let i = 0; i < bufferLen; i += increment){
@@ -96,12 +109,18 @@ export class Lights extends VisualizerBase {
         1 / container.clientHeight
       );
 
+      const strength = this.configurableParams.bloomStrength as ConfigurableParameterRange;
+      const radius = this.configurableParams.bloomRadius as ConfigurableParameterRange;
+      const threshold = this.configurableParams.bloomThreshold as ConfigurableParameterRange;
+      
       const bloomPass = new UnrealBloomPass(
         new Vector2(container.clientWidth, container.clientHeight),
-        0.8, //0.25, // bloom strength
-        1.0, //0.1, // bloom radius
-        0.1,        // bloom threshold
+        strength.value,
+        radius.value,
+        threshold.value,
       );
+      
+      this.bloomPass = bloomPass;
 
       this.composer.setSize(container.clientWidth, container.clientHeight);
       this.composer.addPass(renderScene);
@@ -111,7 +130,7 @@ export class Lights extends VisualizerBase {
     
   }
   
-  lerp(from, to, amount){
+  lerp(from: number, to: number, amount: number): number{
     return to + (from - to) * amount;
   }
   
@@ -158,18 +177,18 @@ export class Lights extends VisualizerBase {
           valToScaleTo = this.scaleTo[i];
         }
         
-        const mat = (obj as Mesh).material as MeshPhongMaterial;
+        const mat = (obj as Mesh).material as MeshStandardMaterial;
         mat.opacity = this.lerp(mat.opacity, valToScaleTo * 1.1, lerpAmount);
       }
     }
     
     this.visualization.children.forEach(c => {
-      //c.rotation.x += 0.05;
-      //c.rotation.z -= 0.02;
-      c.rotation.y += 0.003;
+      const speed = this.configurableParams.speed as ConfigurableParameterRange;
       
-      //c.position.x += c.velocity.x / 10;
-      //c.position.y += c.velocity.y / 10;
+      // @ts-ignore TS2339
+      c.position.x += c.velocity.x / speed.value; //20;
+      // @ts-ignore TS2339
+      c.position.y += c.velocity.y / speed.value; //20;
       
       // if child goes out of viewport, adjust
       //
@@ -177,16 +196,28 @@ export class Lights extends VisualizerBase {
       // https://stackoverflow.com/questions/11586527/converting-world-coordinates-to-screen-coordinates-in-three-js-using-projection
       // https://www.reddit.com/r/Unity3D/comments/e04hot/how_is_cameraworldtoviewportpoint_implemented/
       //
-      /* try this for now
+      // try this for now
       if(c.position.y > 30 || c.position.y < -30 || c.position.x < -30 || c.position.x > 30){
         // push the child back some multiple of its velocity vector
         c.position.set(
-          c.position.x - c.velocity.x * 50, 
+          // @ts-ignore TS2339
+          c.position.x - c.velocity.x * 50,
+          // @ts-ignore TS2339
           c.position.y - c.velocity.y * 50,
           c.position.z
         )
-      }*/
+      }
     });
+    
+    if(this.bloomPass){
+      const strength = this.configurableParams.bloomStrength as ConfigurableParameterRange;
+      const radius = this.configurableParams.bloomRadius as ConfigurableParameterRange;
+      const threshold = this.configurableParams.bloomThreshold as ConfigurableParameterRange;
+      
+      this.bloomPass.strength = strength.value;
+      this.bloomPass.radius = radius.value;
+      this.bloomPass.threshold = threshold.value;
+    }
     
     this.composer.render(); // update bloom filter
   }
