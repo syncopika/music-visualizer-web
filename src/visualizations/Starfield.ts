@@ -136,9 +136,9 @@ export class Starfield extends VisualizerBase {
 
       const bloomPass = new UnrealBloomPass(
         new Vector2(container.clientWidth, container.clientHeight),
-        0.7, //0.25, // bloom strength
+        0.9, //0.25, // bloom strength
         0.9, //0.1, // bloom radius
-        0.1,        // bloom threshold
+        0.08,        // bloom threshold
       );
 
       this.composer.setSize(container.clientWidth, container.clientHeight);
