@@ -18,6 +18,7 @@ import { CircularCubes } from './visualizations/CircularCubes';
 import { Blob as AnimatedBlob } from './visualizations/Blob';
 import { Spheres } from './visualizations/Spheres';
 import { Waves } from './visualizations/Waves';
+import { Lights } from './visualizations/Lights';
 
 // global variables
 let isPlaying = false;
@@ -236,6 +237,10 @@ function switchVisualizer(evt: Event){
       break;
     case 'waves':
       visualizer = new Waves('waves', sceneManager, audioManager, 50);
+      visualizer.init();
+      break;
+    case 'lights':
+      visualizer = new Lights('lights', sceneManager, audioManager, 30);
       visualizer.init();
       break;
     default:

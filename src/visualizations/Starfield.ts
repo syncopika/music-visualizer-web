@@ -79,6 +79,31 @@ export class Starfield extends VisualizerBase {
     return new Quaternion(x, y, z, w2);
   }
   
+  // TODO: given a volume defined by width, height and length,
+  // generate a set of positions of length numDesiredPos that should be
+  // distributed such that they are all at least minDist apart
+  generatePoissonDiskSamplingSet(width: number, height: number, length: number, minDist: number, numDesiredPos: number): Array<Record<string, number>> {
+    // https://sighack.com/post/poisson-disk-sampling-bridsons-algorithm
+    // http://devmag.org.za/2009/05/03/poisson-disk-sampling/
+    // also interesting: https://www.jasondavies.com/poisson-disc/
+    
+    function getRandomCoord(width: number, height: number, length: number): Record<string, number>{
+      return {
+        x: Math.floor(Math.random() * width),
+        y: Math.floor(Math.random() * height),
+        z: Math.floor(Math.random() * length),
+      };
+    }
+    
+    const cellSize = minDist / Math.sqrt(3); // 3 because we're in 3 dimensions
+    
+    const result: Array<Record<string, number>> = [];
+    
+    const processing = [getRandomCoord(width, height, length)];
+    
+    return result;
+  }
+  
   async init(){
     // clear the scene
     this.scene.children.forEach(c => {
@@ -136,9 +161,9 @@ export class Starfield extends VisualizerBase {
 
       const bloomPass = new UnrealBloomPass(
         new Vector2(container.clientWidth, container.clientHeight),
-        0.7, //0.25, // bloom strength
+        0.9, //0.25, // bloom strength
         0.9, //0.1, // bloom radius
-        0.1,        // bloom threshold
+        0.08,        // bloom threshold
       );
 
       this.composer.setSize(container.clientWidth, container.clientHeight);
