@@ -80,15 +80,13 @@ export class Lights extends VisualizerBase {
       const randVelocity = new Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, 1);
       randVelocity.normalize();
       
-      // @ts-ignore TS2339
+      // @ts-expect-error TS2339
       sphere.velocity = randVelocity;
       
       return sphere;
     };
     
-    const skeletonGeometry = new SphereGeometry(15, 32, 16);
-    
-    // try Poisson disk sampling to distribute the spheres so none of them get placed too close to another?
+    // TODO: try Poisson disk sampling to distribute the spheres so none of them get placed too close to another?
     // http://devmag.org.za/2009/05/03/poisson-disk-sampling/
     // https://www.jasondavies.com/poisson-disc/
     for(let i = 0; i < bufferLen; i += increment){
@@ -185,9 +183,9 @@ export class Lights extends VisualizerBase {
     this.visualization.children.forEach(c => {
       const speed = this.configurableParams.speed as ConfigurableParameterRange;
       
-      // @ts-ignore TS2339
+      // @ts-expect-error TS2339
       c.position.x += c.velocity.x / speed.value; //20;
-      // @ts-ignore TS2339
+      // @ts-expect-error TS2339
       c.position.y += c.velocity.y / speed.value; //20;
       
       // if child goes out of viewport, adjust
@@ -200,9 +198,9 @@ export class Lights extends VisualizerBase {
       if(c.position.y > 30 || c.position.y < -30 || c.position.x < -30 || c.position.x > 30){
         // push the child back some multiple of its velocity vector
         c.position.set(
-          // @ts-ignore TS2339
+          // @ts-expect-error TS2339
           c.position.x - c.velocity.x * 50,
-          // @ts-ignore TS2339
+          // @ts-expect-error TS2339
           c.position.y - c.velocity.y * 50,
           c.position.z
         )

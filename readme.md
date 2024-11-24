@@ -11,3 +11,28 @@ some examples:
 example result: https://youtu.be/YHuhptFvSMg?si=OtFU-lnNIJdyeNm9    
     
 Not much to see yet but more to come! I'm trying to make something like [what I did with Unity](https://github.com/syncopika/music-visualizer) but with better recordability.    
+    
+### Project setup    
+```
+npm install
+```    
+    
+### Compiles and hot-reloads    
+```
+npm run dev
+```    
+    
+### TypeScript checking    
+```
+npm run check
+```    
+    
+### Lints files    
+```
+npm run lint
+```    
+    
+### Compiles and minifies for production    
+```
+npm run build
+```    

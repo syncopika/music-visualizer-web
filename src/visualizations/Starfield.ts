@@ -79,10 +79,16 @@ export class Starfield extends VisualizerBase {
     return new Quaternion(x, y, z, w2);
   }
   
-  // TODO: given a volume defined by width, height and length,
+  /* TODO: given a volume defined by width, height and length,
   // generate a set of positions of length numDesiredPos that should be
   // distributed such that they are all at least minDist apart
-  generatePoissonDiskSamplingSet(width: number, height: number, length: number, minDist: number, numDesiredPos: number): Array<Record<string, number>> {
+  generatePoissonDiskSamplingSet(
+    width: number, 
+    height: number, 
+    length: number, 
+    minDist: number, 
+    numDesiredPos: number
+  ): Array<Record<string, number>> {
     // https://sighack.com/post/poisson-disk-sampling-bridsons-algorithm
     // http://devmag.org.za/2009/05/03/poisson-disk-sampling/
     // also interesting: https://www.jasondavies.com/poisson-disc/
@@ -102,7 +108,7 @@ export class Starfield extends VisualizerBase {
     const processing = [getRandomCoord(width, height, length)];
     
     return result;
-  }
+  }*/
   
   async init(){
     // clear the scene
