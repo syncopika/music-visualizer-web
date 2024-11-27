@@ -142,5 +142,7 @@ export class Spheres extends VisualizerBase {
     }
     
     this.visualization.rotateZ(Math.PI / 500);
+    
+    this.doPostProcessing();
   }
 }

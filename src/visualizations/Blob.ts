@@ -219,5 +219,7 @@ export class Blob extends VisualizerBase {
     (this.visualization.material as ShaderMaterial).uniforms.u_frequency.value = avgFreq;
     
     this.visualization.rotateY(Math.PI / 2500);
+    
+    this.doPostProcessing();
   }
 }

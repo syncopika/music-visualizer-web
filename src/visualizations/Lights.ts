@@ -1,21 +1,15 @@
 import { 
   VisualizerBase,
   ConfigurableParameterRange,
+  ConfigurableParameterToggle,
 } from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
-
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 
 import {
   Mesh,
   SphereGeometry,
   MeshStandardMaterial,
-  Vector2,
   Vector3,
   Group,
 } from 'three';
@@ -25,8 +19,6 @@ export class Lights extends VisualizerBase {
   visualization: Group;
   lastTime: number;
   scaleTo: number[];
-  composer: EffectComposer;
-  bloomPass: UnrealBloomPass;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
@@ -34,14 +26,15 @@ export class Lights extends VisualizerBase {
     this.visualization = new Group();
     this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
-    this.composer = new EffectComposer(this.renderer);
     
-    this.configurableParams = {
-      'bloomStrength': {value: 0.8, min: 0, max: 2.0, step: 0.1},
-      'bloomRadius': {value: 1.0, min: 0, max: 2.0, step: 0.1},
-      'bloomThreshold': {value: 0.1, min: 0, max: 2.0, step: 0.1},
-      'speed': {value: 20, min: 1, max: 40, step: 1}, // TODO: this is actually inverted atm lol - smaller value == faster
-    };
+    this.configurableParams['speed'] = {
+      value: 20, 
+      min: 1, 
+      max: 80, 
+      step: 1
+    }; // TODO: this is actually inverted atm lol - smaller value == faster
+    
+    (this.configurableParams.bloomPass as ConfigurableParameterToggle).isOn = true;
   }
   
   init(){
@@ -94,38 +87,6 @@ export class Lights extends VisualizerBase {
     }
     
     this.scene.add(this.visualization);
-    
-    // glow effect stuff (Bloom effect)
-    const container = this.renderer.domElement;
-    
-    if(container){
-      const renderScene = new RenderPass(this.scene, this.camera);
-      
-      const effectFXAA = new ShaderPass(FXAAShader);
-      effectFXAA.uniforms['resolution'].value.set(
-        1 / container.clientWidth, 
-        1 / container.clientHeight
-      );
-
-      const strength = this.configurableParams.bloomStrength as ConfigurableParameterRange;
-      const radius = this.configurableParams.bloomRadius as ConfigurableParameterRange;
-      const threshold = this.configurableParams.bloomThreshold as ConfigurableParameterRange;
-      
-      const bloomPass = new UnrealBloomPass(
-        new Vector2(container.clientWidth, container.clientHeight),
-        strength.value,
-        radius.value,
-        threshold.value,
-      );
-      
-      this.bloomPass = bloomPass;
-
-      this.composer.setSize(container.clientWidth, container.clientHeight);
-      this.composer.addPass(renderScene);
-      this.composer.addPass(effectFXAA);
-      this.composer.addPass(bloomPass);
-    }
-    
   }
   
   lerp(from: number, to: number, amount: number): number{
@@ -207,16 +168,6 @@ export class Lights extends VisualizerBase {
       }
     });
     
-    if(this.bloomPass){
-      const strength = this.configurableParams.bloomStrength as ConfigurableParameterRange;
-      const radius = this.configurableParams.bloomRadius as ConfigurableParameterRange;
-      const threshold = this.configurableParams.bloomThreshold as ConfigurableParameterRange;
-      
-      this.bloomPass.strength = strength.value;
-      this.bloomPass.radius = radius.value;
-      this.bloomPass.threshold = threshold.value;
-    }
-    
-    this.composer.render(); // update bloom filter
+    this.doPostProcessing();
   }
 }

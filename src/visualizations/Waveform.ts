@@ -132,5 +132,7 @@ export class Waveform extends VisualizerBase {
       const obj = this.visualization.children[i];
       obj.position.lerp(new Vector3(obj.position.x, y, obj.position.z), 0.5);
     }*/
+    
+    this.doPostProcessing();
   }
 }

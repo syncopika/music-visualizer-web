@@ -128,5 +128,7 @@ export class CircularCubes extends VisualizerBase {
     }
     
     this.visualization.rotateY(Math.PI / 2500);
+    
+    this.doPostProcessing();
   }
 }
