@@ -7,15 +7,8 @@ import {
   Vector3,
   Group,
   Quaternion,
-  Vector2,
   MeshStandardMaterial,
 } from 'three';
-
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
@@ -28,7 +21,6 @@ export class Starfield extends VisualizerBase {
   numObjects: number;
   visualization: Group;
   loader: GLTFLoader;
-  composer: EffectComposer; // TODO: should effects be within SceneManager so we can apply to any visualizer?
   xMin: number;
   xMax: number;
   yMin: number;
@@ -50,7 +42,6 @@ export class Starfield extends VisualizerBase {
     this.numObjects = size;
     this.visualization = new Group();
     this.loader = new GLTFLoader();
-    this.composer = new EffectComposer(this.renderer);
     this.xMin = xMin || -50;
     this.xMax = xMax || 50;
     this.yMin = yMin || -20;
@@ -153,32 +144,7 @@ export class Starfield extends VisualizerBase {
       this.visualization.add(star);
     }
     
-    // glow effect stuff (Bloom effect)
-    const container = this.renderer.domElement;
-    
-    if(container){
-      const renderScene = new RenderPass(this.scene, this.camera);
-      
-      const effectFXAA = new ShaderPass(FXAAShader);
-      effectFXAA.uniforms['resolution'].value.set(
-        1 / container.clientWidth, 
-        1 / container.clientHeight
-      );
-
-      const bloomPass = new UnrealBloomPass(
-        new Vector2(container.clientWidth, container.clientHeight),
-        0.9, //0.25, // bloom strength
-        0.9, //0.1, // bloom radius
-        0.08,        // bloom threshold
-      );
-
-      this.composer.setSize(container.clientWidth, container.clientHeight);
-      this.composer.addPass(renderScene);
-      this.composer.addPass(effectFXAA);
-      this.composer.addPass(bloomPass);
-      
-      this.scene.add(this.visualization);
-    }
+    this.scene.add(this.visualization);
   }
   
   update(){
@@ -211,6 +177,7 @@ export class Starfield extends VisualizerBase {
     
     this.camera.translateZ(-0.01); // move camera forward a bit
     this.camera.rotateZ(-Math.PI / 2500); // rotate the camera 
-    this.composer.render(); // update bloom filter
+    
+    this.doPostProcessing();
   }
 }

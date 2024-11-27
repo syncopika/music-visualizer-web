@@ -317,5 +317,6 @@ if(loadingMsg) loadingMsg.style.display = 'none';
 
 visualizer = new Waveform('waveform', sceneManager, audioManager, 50);
 visualizer.init();
+displayVisualizerConfigurableParams(visualizer);
 
 update();
