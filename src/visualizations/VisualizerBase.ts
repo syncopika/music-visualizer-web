@@ -23,11 +23,13 @@ export interface ConfigurableParameterRange {
   max: number;
   step: number;
   doNotShow?: boolean; // in case we still need to figure stuff out but would like to make it user-configurable in the future :)
+  parameterName?: string;
 }
 
 export interface ConfigurableParameterToggle {
   isOn: boolean;
   doNotShow?: boolean;
+  parameterName?: string;
 }
 
 export class VisualizerBase {
@@ -53,12 +55,12 @@ export class VisualizerBase {
     this.camera = sceneManager.camera;
     this.renderer = sceneManager.renderer;
     this.configurableParams = {
-      'bloomPass': {isOn: false},
-      'bloomStrength': {value: 0.8, min: 0, max: 2.0, step: 0.1},
-      'bloomRadius': {value: 1.0, min: 0, max: 2.0, step: 0.1},
-      'bloomThreshold': {value: 0.1, min: 0, max: 2.0, step: 0.1},
-      'afterimagePass': {isOn: false},
-      'afterimageDamp': {value: 0.5, min: 0, max: 1, step: 0.1},
+      'bloomPass': {isOn: false, parameterName: 'bloom'},
+      'bloomStrength': {value: 0.8, min: 0.0, max: 2.0, step: 0.1, parameterName: 'bloom'},
+      'bloomRadius': {value: 1.0, min: 0.0, max: 2.0, step: 0.1, parameterName: 'bloom'},
+      'bloomThreshold': {value: 0.1, min: 0.0, max: 2.0, step: 0.1, parameterName: 'bloom'},
+      'afterimagePass': {isOn: false, parameterName: 'afterimage'},
+      'afterimageDamp': {value: 0.5, min: 0.0, max: 1.0, step: 0.1, parameterName: 'afterimage'},
     };
     
     // post-processing effects

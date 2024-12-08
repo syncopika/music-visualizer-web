@@ -8,7 +8,9 @@ some examples:
 
 ![spheres visualizer](screenshots/21-09-2024_100411.gif)    
     
-example result: https://youtu.be/YHuhptFvSMg?si=OtFU-lnNIJdyeNm9    
+example recording results (the resolution unfortunately isn't great though and needs to be investigated):    
+https://youtu.be/hJ_b6xqj3AY (circular-cubes visualizer with bloom)    
+https://youtu.be/SpYILMHzyhY (spheres visualizer with bloom + afterimage postprocessing)    
     
 Not much to see yet but more to come! I'm trying to make something like [what I did with Unity](https://github.com/syncopika/music-visualizer) but with better recordability.    
     

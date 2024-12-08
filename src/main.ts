@@ -162,10 +162,11 @@ function makeSlider(name: string, parameter: ConfigurableParameterRange): HTMLEl
   const input = document.createElement('input');
   input.id = `${name}-slider`;
   input.type = 'range';
-  input.value = parameter.value.toString();
+  // the order in which we set these values appears to matter :/
   input.min = parameter.min.toString();
   input.max = parameter.max.toString();
   input.step = parameter.step.toString();
+  input.value = parameter.value.toString();
   input.addEventListener('change', (evt: Event) => {
     const target = evt.target as HTMLInputElement;
     parameter.value = parseFloat(target.value);
@@ -184,11 +185,17 @@ function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
   visualizerOptions?.replaceChildren();
   
   // add current visualizer-specific parameters
+  let currParamName = '';
   const params = Object.keys(visualizer.configurableParams);
   params.forEach(p => {
     const param = visualizer.configurableParams[p];
     if(param?.doNotShow){
       return;
+    }
+    
+    if(param?.parameterName !== currParamName){
+      visualizerOptions?.appendChild(document.createElement('hr'));
+      currParamName = param.parameterName || '';
     }
     
     if('isOn' in param){
@@ -201,6 +208,7 @@ function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
       visualizerOptions?.appendChild(newSliderDiv);
     }
   });
+  //visualizerOptions?.appendChild(document.createElement('hr'));
 }
 
 function switchVisualizer(evt: Event){
@@ -220,7 +228,7 @@ function switchVisualizer(evt: Event){
       visualizer.init();
       break;
     case 'starfield':
-      visualizer = new Starfield('starfield', sceneManager, audioManager, 80);
+      visualizer = new Starfield('starfield', sceneManager, audioManager, 200);
       visualizer.init();
       break;
     case 'pixels':
