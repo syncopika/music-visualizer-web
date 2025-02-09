@@ -19,6 +19,7 @@ import { Blob as AnimatedBlob } from './visualizations/Blob';
 import { Spheres } from './visualizations/Spheres';
 import { Waves } from './visualizations/Waves';
 import { Lights } from './visualizations/Lights';
+import { Orbits } from './visualizations/Orbits';
 
 // global variables
 let isPlaying = false;
@@ -249,6 +250,10 @@ function switchVisualizer(evt: Event){
       break;
     case 'lights':
       visualizer = new Lights('lights', sceneManager, audioManager, 30);
+      visualizer.init();
+      break;
+    case 'orbits':
+      visualizer = new Orbits('orbits', sceneManager, audioManager, 40);
       visualizer.init();
       break;
     default:
