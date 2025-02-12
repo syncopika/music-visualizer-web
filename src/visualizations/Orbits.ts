@@ -36,6 +36,8 @@ export class Orbits extends VisualizerBase {
     this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
     this.orbits = [];
+    
+    (this.configurableParams.bloomPass as ConfigurableParameterToggle).isOn = true;
   }
   
   init(){

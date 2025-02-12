@@ -28,11 +28,11 @@ export class Lights extends VisualizerBase {
     this.scaleTo = [];
     
     this.configurableParams['speed'] = {
-      value: 20, 
-      min: 1, 
-      max: 80, 
-      step: 1
-    }; // TODO: this is actually inverted atm lol - smaller value == faster
+      value: 0.05, 
+      min: 0.01, 
+      max: 1.0, 
+      step: 0.01,
+    };
     
     (this.configurableParams.bloomPass as ConfigurableParameterToggle).isOn = true;
   }
@@ -145,9 +145,9 @@ export class Lights extends VisualizerBase {
       const speed = this.configurableParams.speed as ConfigurableParameterRange;
       
       // @ts-expect-error TS2339
-      c.position.x += c.velocity.x / speed.value; //20;
+      c.position.x += c.velocity.x * speed.value;
       // @ts-expect-error TS2339
-      c.position.y += c.velocity.y / speed.value; //20;
+      c.position.y += c.velocity.y * speed.value;
       
       // if child goes out of viewport, adjust
       //
