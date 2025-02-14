@@ -79,7 +79,7 @@ export class Orbits extends VisualizerBase {
         const randRotation = new Quaternion();
         randRotation.random();
         
-        const factor = Math.random();
+        const factor = Math.random(); // for randomizing speed
         
         return (time: number) => {
           const newXPos = majAxis * Math.cos(factor * time);
@@ -142,7 +142,9 @@ export class Orbits extends VisualizerBase {
       
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
-        const newVal = value * 12;
+        
+        // prevent scale from possibly being 0
+        const newVal = Math.max(value * 12, 0.001);
 
         if(scaleToIsEmpty){
           this.scaleTo.push(newVal);
@@ -162,7 +164,9 @@ export class Orbits extends VisualizerBase {
         
         if(scaleToIsEmpty){
           this.scaleTo.push(newVal);
-          valToScaleTo = newVal;
+          
+          // prevent scale from possibly being 0
+          valToScaleTo = Math.max(newVal, 0.001);
         }else{
           valToScaleTo = this.scaleTo[i];
         }
