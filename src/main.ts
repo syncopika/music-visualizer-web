@@ -25,6 +25,7 @@ import { Orbits } from './visualizations/Orbits';
 let isPlaying = false;
 let visualizer: VisualizerBase | null = null;
 
+let isRecording = false;
 let recordingOn = false;
 let mediaRecorder: MediaRecorder | null = null;
 let capturedVideoChunks: Blob[] = [];
@@ -107,9 +108,10 @@ function playVisualization(){
   audioManager.play();
   isPlaying = true;
   
-  if(recordingOn){
+  if(recordingOn && !isRecording){
     console.log('starting record');
     startCanvasRecord(renderer);
+    isRecording = true;
   }
 }
 
@@ -117,9 +119,10 @@ function stopVisualization(){
   audioManager.stop();
   isPlaying = false;
   
-  if(recordingOn){
+  if(isRecording){
     console.log('stopping record');
     stopCanvasRecord();
+    isRecording = false;
   }
 }
 
