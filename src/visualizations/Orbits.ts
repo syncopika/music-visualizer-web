@@ -1,4 +1,4 @@
-import { VisualizerBase } from './VisualizerBase';
+import { ConfigurableParameterToggle, VisualizerBase } from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
