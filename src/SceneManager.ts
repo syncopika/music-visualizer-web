@@ -9,6 +9,7 @@ import {
   Clock,
   Mesh,
   MeshStandardMaterial,
+  Texture,
 } from 'three';
 
 export class SceneManager {
@@ -17,6 +18,7 @@ export class SceneManager {
   camera: Camera;
   light: SpotLight;
   clock: Clock;
+  texture: Texture | null;
   
   constructor(container: HTMLCanvasElement){
     const scene = new Scene();
@@ -55,6 +57,8 @@ export class SceneManager {
     this.light = light;
     
     this.clock = new Clock();
+    
+    this.texture = null;
     
     renderer.render(scene, camera);    
   }
@@ -111,5 +115,45 @@ export class SceneManager {
         });
       }
     });
+  }
+  
+  updateTexture(texture: Texture | null){
+    if(texture !== null){
+      console.log("updating texture");
+      this.scene.children.forEach(child => {
+        if(child.type === 'Group'){
+          (child.children as Mesh[]).forEach(c => {
+            if(c.material){
+              (c.material as MeshStandardMaterial).map = texture;
+              (c.material as MeshStandardMaterial).needsUpdate = true;
+            }else if(c.children){
+              // TODO: recursively apply new color to children if Group is found
+              (c.children as Mesh[]).forEach(c2 => {
+                (c2.material as MeshStandardMaterial).map = texture;
+                (c.material as MeshStandardMaterial).needsUpdate = true;
+              });
+            }
+          });
+        }
+      });
+    }else if(texture === null){
+      // remove texture and set bg color
+      this.scene.children.forEach(child => {
+        if(child.type === 'Group'){
+          (child.children as Mesh[]).forEach(c => {
+            if(c.material){
+              (c.material as MeshStandardMaterial).map = null;
+              (c.material as MeshStandardMaterial).needsUpdate = true;
+            }else if(c.children){
+              // TODO: recursively apply new color to children if Group is found
+              (c.children as Mesh[]).forEach(c2 => {
+                (c2.material as MeshStandardMaterial).map = null;
+                (c.material as MeshStandardMaterial).needsUpdate = true;
+              });
+            }
+          });
+        }
+      });      
+    }
   }
 }

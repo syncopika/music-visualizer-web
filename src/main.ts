@@ -1,5 +1,6 @@
 import { 
   WebGLRenderer,
+  TextureLoader,
 } from 'three';
 
 import { SceneManager } from './SceneManager';
@@ -20,7 +21,7 @@ import { Spheres } from './visualizations/Spheres';
 import { Waves } from './visualizations/Waves';
 import { Lights } from './visualizations/Lights';
 import { Orbits } from './visualizations/Orbits';
-import { ImageVisualizer } from './visualizations/Image';
+import { ImagePlane } from './visualizations/Image';
 
 // global variables
 let isPlaying = false;
@@ -49,6 +50,8 @@ const bgColorPicker = document.getElementById('bgColorPicker');
 const vizColorPicker = document.getElementById('vizColorPicker');
 const fftSizeDropdown = document.getElementById('fftSizeSelect');
 const toggleWireframeCheckbox = document.getElementById('toggleWireframeInput');
+const importImage = document.getElementById('importImage');
+const removeImage = document.getElementById('removeImage');
 
 // stuff for canvas recording
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
@@ -261,7 +264,7 @@ function switchVisualizer(evt: Event){
       visualizer.init();
       break;
     case 'image':
-      visualizer = new ImageVisualizer('imageVisualizer', sceneManager, audioManager);
+      visualizer = new ImagePlane('imagePlane', sceneManager, audioManager);
       visualizer.init();
       break;
     default:
@@ -325,6 +328,41 @@ fftSizeDropdown?.addEventListener('change', (evt: Event) => {
 
 toggleWireframeCheckbox?.addEventListener('change', () => {
   sceneManager.toggleWireframe();
+});
+
+importImage?.addEventListener('click', () => {
+  // import image, create texture, apply it to all children of scene via SceneManager
+  if(sceneManager){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.addEventListener('change', getFile, false);
+    input.click();
+    
+    function getFile(e){
+        const img = new Image();
+        const reader = new FileReader();
+        const file = e.target.files[0];
+        
+        if(!file.type.match(/image.*/)){
+            console.log("not a valid image");
+            return;
+        }
+        
+        reader.onloadend = function(){
+          const newTexture = new TextureLoader().load(reader.result);
+          sceneManager.updateTexture(newTexture);
+        };
+        reader.readAsDataURL(file);
+    }
+  }
+});
+
+removeImage?.addEventListener('click', () => {
+  // remove texture from all children of scene via SceneManager
+  // set color of all children to current selected color
+  if(sceneManager){
+    sceneManager.updateTexture(null);
+  }
 });
 
 // 3d stuff setup

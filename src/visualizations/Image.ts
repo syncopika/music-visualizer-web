@@ -4,6 +4,8 @@ import { AudioManager } from '../AudioManager';
 
 // TODO: allow user to import image to show on plane
 // check out https://github.com/syncopika/room-designer/blob/main/src/index.js
+// https://github.com/syncopika/room-designer/blob/main/src/index.js#L742
+// https://github.com/syncopika/room-designer/blob/main/src/index.js#L407
 
 import {
   Mesh,
@@ -15,7 +17,7 @@ import {
   DoubleSide,
 } from 'three';
 
-export class ImageVisualizer extends VisualizerBase {
+export class ImagePlane extends VisualizerBase {
   visualization: Group;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager){
