@@ -20,6 +20,7 @@ import { Spheres } from './visualizations/Spheres';
 import { Waves } from './visualizations/Waves';
 import { Lights } from './visualizations/Lights';
 import { Orbits } from './visualizations/Orbits';
+import { ImageVisualizer } from './visualizations/Image';
 
 // global variables
 let isPlaying = false;
@@ -257,6 +258,10 @@ function switchVisualizer(evt: Event){
       break;
     case 'orbits':
       visualizer = new Orbits('orbits', sceneManager, audioManager, 40);
+      visualizer.init();
+      break;
+    case 'image':
+      visualizer = new ImageVisualizer('imageVisualizer', sceneManager, audioManager);
       visualizer.init();
       break;
     default:
