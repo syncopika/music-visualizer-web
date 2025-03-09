@@ -164,7 +164,7 @@
     }
     
   </style>
-  <script type="module" crossorigin src="/music-visualizer-web/assets/index-BsMjpEpW.js"></script>
+  <script type="module" crossorigin src="/music-visualizer-web/assets/index-DnO92QPN.js"></script>
 </head>
 
 <body>
@@ -238,6 +238,10 @@
           </select>
         </div>
         
+        <!-- allow user to import an image to be used as texture -->
+        <button id='importImage'> import image as texture </button>
+        <button id='removeImage'> clear texture </button>
+        
         <!-- lighting controls -->
         <div class='lightingControl'>
           <p id='lightingControlHeader'> light controls </p>
@@ -285,6 +289,7 @@
           <option> waves </option>
           <option> lights </option>
           <option> orbits </option>
+          <option> image </option>
         </select>
       </div>
       <div id='toggleRecording'>
