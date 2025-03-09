@@ -9,11 +9,9 @@ import { AudioManager } from '../AudioManager';
 
 import {
   Mesh,
-  Vector3,
   Group,
   PlaneGeometry,
   MeshBasicMaterial,
-  TextureLoader,
   DoubleSide,
 } from 'three';
 
@@ -38,13 +36,13 @@ export class ImagePlane extends VisualizerBase {
     
         // create plane mesh to hold image
     const planeGeometry = new PlaneGeometry(30, 30, 1, 1);
-    const planeMaterial = new MeshBasicMaterial({color: 0x00ff00, side: DoubleSide});
+    const planeMaterial = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide});
     const plane = new Mesh(planeGeometry, planeMaterial);
     this.visualization.add(plane);
     
     this.scene.add(this.visualization);
     this.visualization.position.z = -25;
-    this.visualization.position.y -= 0.5;
+    this.visualization.position.y += 1.5;
   }
   
   update(){

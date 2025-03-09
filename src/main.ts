@@ -338,21 +338,27 @@ importImage?.addEventListener('click', () => {
     input.addEventListener('change', getFile, false);
     input.click();
     
-    function getFile(e){
-        const img = new Image();
-        const reader = new FileReader();
-        const file = e.target.files[0];
-        
+    function getFile(e: Event){
+      const reader = new FileReader();
+      
+      const files = (e.target as HTMLInputElement)?.files
+      
+      if(files){
+        const file = files[0];
+      
         if(!file.type.match(/image.*/)){
             console.log("not a valid image");
             return;
         }
         
         reader.onloadend = function(){
-          const newTexture = new TextureLoader().load(reader.result);
-          sceneManager.updateTexture(newTexture);
+          if(reader.result && typeof reader.result === 'string'){
+            const newTexture = new TextureLoader().load(reader.result);
+            sceneManager.updateTexture(newTexture);
+          }
         };
         reader.readAsDataURL(file);
+      }
     }
   }
 });

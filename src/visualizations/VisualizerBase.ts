@@ -44,7 +44,6 @@ export class VisualizerBase {
   bloomPass: UnrealBloomPass;
   afterimagePass: AfterimagePass;
   outputPass: OutputPass;
-  imageTexture: Texture | null;
   configurableParams: Record<string, ConfigurableParameterRange | ConfigurableParameterToggle>;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager){
