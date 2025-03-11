@@ -331,7 +331,7 @@ toggleWireframeCheckbox?.addEventListener('change', () => {
 });
 
 importImage?.addEventListener('click', () => {
-  // import image, create texture, apply it to all children of scene via SceneManager
+  // import image, create texture, apply it to all children of scene
   if(sceneManager){
     const input = document.createElement('input');
     input.type = 'file';
@@ -364,8 +364,7 @@ importImage?.addEventListener('click', () => {
 });
 
 removeImage?.addEventListener('click', () => {
-  // remove texture from all children of scene via SceneManager
-  // set color of all children to current selected color
+  // remove texture from all children of scene
   if(sceneManager){
     sceneManager.updateTexture(null);
   }

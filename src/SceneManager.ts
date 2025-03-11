@@ -119,7 +119,6 @@ export class SceneManager {
   
   updateTexture(texture: Texture | null){
     if(texture !== null){
-      console.log("updating texture");
       this.scene.children.forEach(child => {
         if(child.type === 'Group'){
           (child.children as Mesh[]).forEach(c => {
@@ -137,7 +136,6 @@ export class SceneManager {
         }
       });
     }else if(texture === null){
-      // remove texture and set bg color
       this.scene.children.forEach(child => {
         if(child.type === 'Group'){
           (child.children as Mesh[]).forEach(c => {
