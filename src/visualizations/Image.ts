@@ -1,7 +1,6 @@
 import {
   VisualizerBase,
   ConfigurableParameterRange,
-  ConfigurableParameterToggle,
 } from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
