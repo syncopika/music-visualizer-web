@@ -31,6 +31,7 @@ let isRecording = false;
 let recordingOn = false;
 let mediaRecorder: MediaRecorder | null = null;
 let capturedVideoChunks: Blob[] = [];
+let expectedStopTime: number | null = null; // should be record start time + duration of imported audio as unix timestamp
 
 const audioManager = new AudioManager();
 
@@ -62,7 +63,7 @@ const removeImage = document.getElementById('removeImage');
 // https://stackoverflow.com/questions/39302814/mediastream-capture-canvas-and-audio-simultaneously
 function startCanvasRecord(renderer: WebGLRenderer){
   if(!mediaRecorder){
-    if(canvasContainer) canvasContainer.style.border = '3px solid #aaff00';
+    if(canvasContainer) canvasContainer.style.border = '3px solid #ff0000'; // red border
     
     const canvasStream = renderer.domElement.captureStream();
     
@@ -88,15 +89,19 @@ function startCanvasRecord(renderer: WebGLRenderer){
     };
     
     mediaRecorder.start();
+    
+    expectedStopTime = Date.now() + audioManager.audioDurationInMs;
+    console.log(`recording should stop @ ${expectedStopTime}, ${new Date(expectedStopTime)}`);
   }
 }
 
 function stopCanvasRecord(){
   if(mediaRecorder){
-    if(canvasContainer) canvasContainer.style.border = 'none';
+    if(canvasContainer) canvasContainer.style.border = '3px solid #aaff00'; // green border
     
     mediaRecorder.stop();
     mediaRecorder = null;
+    expectedStopTime = null;
   }
 }
 
@@ -105,6 +110,14 @@ function update(){
   requestAnimationFrame(update);
   if(visualizer && isPlaying){
     visualizer.update();
+  }
+  
+  // if recording, check if now >= expectedStopTime and stop recording
+  if(isRecording){
+    const now = Date.now();
+    if(expectedStopTime && now >= expectedStopTime){
+      stopVisualization();
+    }
   }
 }
 
@@ -286,7 +299,15 @@ stopBtn?.addEventListener('click', stopVisualization);
 vizSelect?.addEventListener('change', switchVisualizer);
 
 toggleRecording?.addEventListener(
-  'change', () => recordingOn = !recordingOn
+  'change', () => {
+    recordingOn = !recordingOn;
+  
+    if(recordingOn){
+      if(canvasContainer) canvasContainer.style.border = '3px solid #aaff00'; // green border
+    }else{
+      if(canvasContainer) canvasContainer.style.border = 'none';
+    }
+  }
 );
 
 showDrawer?.addEventListener('click', () => {

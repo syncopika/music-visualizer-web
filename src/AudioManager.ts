@@ -7,6 +7,7 @@ export class AudioManager {
   audioSource:             AudioBufferSourceNode;
   audioFileUrl = '';
   isPlaying = false;
+  audioDurationInMs = 0;
   
   constructor(){
     // set up web audio stuff
@@ -32,11 +33,14 @@ export class AudioManager {
     req.open("GET", url, true);
     req.responseType = 'arraybuffer';
     req.onload = () => {
-      this.audioContext.decodeAudioData(req.response, (buffer) => {
+      this.audioContext.decodeAudioData(req.response, (buffer: AudioBuffer) => {
         if (!this.audioSource.buffer) this.audioSource.buffer = buffer;
         this.audioSource.connect(this.analyser);
         this.audioSource.connect(this.audioContext.destination);
         this.audioSource.connect(this.mediaStreamDestination);
+        
+        // https://stackoverflow.com/questions/71118040/getting-the-duration-of-an-mp3-file-in-a-variable
+        this.audioDurationInMs = buffer.duration * 1000; // convert to ms
       });
     };
     
