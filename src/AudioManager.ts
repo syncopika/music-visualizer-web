@@ -9,6 +9,11 @@ export class AudioManager {
   isPlaying = false;
   audioDurationInMs = 0;
   
+  // for displaying waveform of audio
+  waveformCanvas:             HTMLCanvasElement | null;
+  waveformDisplayAnimationId: number;
+  waveformCanvasId = 'waveformCanvas';
+  
   constructor(){
     // set up web audio stuff
     const audioCtx = new AudioContext();
@@ -23,6 +28,10 @@ export class AudioManager {
     this.analyser = analyser;
     this.buffer = buffer;
     this.mediaStreamDestination = audioStream;
+    
+    // for waveform visualization (separate from the main visualizer)
+    const waveformCanvasEl = document.getElementById(this.waveformCanvasId) as HTMLCanvasElement;
+    this.waveformCanvas = waveformCanvasEl;
   }
   
   loadAudioFile(url: string){
@@ -104,6 +113,7 @@ export class AudioManager {
     if(!this.isPlaying){
       this.audioSource?.start();
       this.isPlaying = true;
+      this.doWaveformVisualization();
     }
   }
   
@@ -122,5 +132,48 @@ export class AudioManager {
     
     // also update buffer accordingly
     this.buffer = new Uint8Array(this.analyser.frequencyBinCount);
+  }
+  
+  doWaveformVisualization(){
+    if(this.waveformCanvas === null || !this.isPlaying){
+      console.log('stopping waveform animation');
+      cancelAnimationFrame(this.waveformDisplayAnimationId);
+      return;
+    }
+    
+    const canvasCtx = this.waveformCanvas.getContext('2d');
+    const width = (this.waveformCanvas as HTMLCanvasElement).width;
+    const height = (this.waveformCanvas as HTMLCanvasElement).height;
+    const bufferLen = this.analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLen);
+    
+    if(canvasCtx){
+        this.analyser.getByteTimeDomainData(dataArray);
+        canvasCtx.fillStyle = 'rgb(240, 240, 240)';
+        canvasCtx.fillRect(0, 0, width, height);
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+        canvasCtx.beginPath();
+        
+        const sliceWidth = width / bufferLen;
+        let xPos = 0;
+        
+        for(let i = 0; i < bufferLen; i++){
+            const dataVal = dataArray[i] / 128.0; // why 128?
+            const yPos = dataVal * (height/2);
+            
+            if(i === 0){
+                canvasCtx!.moveTo(xPos, yPos);
+            }else{
+                canvasCtx!.lineTo(xPos, yPos);
+            }
+            
+            xPos += sliceWidth;
+        }
+        
+        canvasCtx.stroke();
+        
+        this.waveformDisplayAnimationId = requestAnimationFrame(this.doWaveformVisualization.bind(this));
+    }
   }
 }

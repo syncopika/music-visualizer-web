@@ -1,9 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 
 <html>
 
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>music visualizer web app</title>
   <style>
@@ -164,6 +164,13 @@
       margin-left: auto;
     }
     
+    #waveformCanvas {
+      border: 1px solid #000;
+      margin: 8px auto;
+      width: 50%;
+      height: 50px;
+    }
+    
   </style>
 </head>
 
@@ -297,6 +304,7 @@
         <input id='toggleRecordingCheckbox' type='checkbox' />
       </div>
     </div>
+    <canvas id='waveformCanvas'></canvas>
   </main>
   
   <script type="module" src="/src/main.ts">
