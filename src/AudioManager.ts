@@ -149,7 +149,7 @@ export class AudioManager {
     
     if(canvasCtx){
         this.analyser.getByteTimeDomainData(dataArray);
-        canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+        canvasCtx.fillStyle = 'rgb(240, 240, 240)';
         canvasCtx.fillRect(0, 0, width, height);
         canvasCtx.lineWidth = 2;
         canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
