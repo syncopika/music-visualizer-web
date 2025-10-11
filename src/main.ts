@@ -51,8 +51,10 @@ const bgColorPicker = document.getElementById('bgColorPicker');
 const vizColorPicker = document.getElementById('vizColorPicker');
 const fftSizeDropdown = document.getElementById('fftSizeSelect');
 const toggleWireframeCheckbox = document.getElementById('toggleWireframeInput');
-const importImage = document.getElementById('importImage');
-const removeImage = document.getElementById('removeImage');
+const importImageBtn = document.getElementById('importImage');
+importImageBtn.disabled = true;
+const removeImageBtn = document.getElementById('removeImage');
+removeImageBtn.disabled = true;
 
 // stuff for canvas recording
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
@@ -284,6 +286,15 @@ function switchVisualizer(evt: Event){
       break;
   }
   
+  // only show image import/image clear buttons if the visualizer is the image visualizer
+  if(selected === 'image'){
+    if(importImageBtn) importImageBtn.disabled = false;
+    if(removeImageBtn) removeImageBtn.disabled = false;
+  }else{
+    if(importImageBtn) importImageBtn.disabled = true;
+    if(removeImageBtn) removeImageBtn.disabled = true;
+  }
+  
   if(toggleWireframeCheckbox) (toggleWireframeCheckbox as HTMLInputElement).checked = false;
   
   if(visualizer) displayVisualizerConfigurableParams(visualizer);
@@ -351,7 +362,7 @@ toggleWireframeCheckbox?.addEventListener('change', () => {
   sceneManager.toggleWireframe();
 });
 
-importImage?.addEventListener('click', () => {
+importImageBtn?.addEventListener('click', () => {
   // import image, create texture, apply it to all children of scene
   if(sceneManager){
     const input = document.createElement('input');
@@ -384,7 +395,7 @@ importImage?.addEventListener('click', () => {
   }
 });
 
-removeImage?.addEventListener('click', () => {
+removeImageBtn?.addEventListener('click', () => {
   // remove texture from all children of scene
   if(sceneManager){
     sceneManager.updateTexture(null);
