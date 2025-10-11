@@ -52,9 +52,9 @@ const vizColorPicker = document.getElementById('vizColorPicker');
 const fftSizeDropdown = document.getElementById('fftSizeSelect');
 const toggleWireframeCheckbox = document.getElementById('toggleWireframeInput');
 const importImageBtn = document.getElementById('importImage');
-importImageBtn.disabled = true;
+if(importImageBtn) (importImageBtn as HTMLButtonElement).disabled = true;
 const removeImageBtn = document.getElementById('removeImage');
-removeImageBtn.disabled = true;
+if(removeImageBtn) (removeImageBtn as HTMLButtonElement).disabled = true;
 
 // stuff for canvas recording
 // helpful! https://devtails.xyz/@adam/how-to-record-html-canvas-using-mediarecorder-and-export-as-video
@@ -288,11 +288,11 @@ function switchVisualizer(evt: Event){
   
   // only show image import/image clear buttons if the visualizer is the image visualizer
   if(selected === 'image'){
-    if(importImageBtn) importImageBtn.disabled = false;
-    if(removeImageBtn) removeImageBtn.disabled = false;
+    if(importImageBtn) (importImageBtn as HTMLButtonElement).disabled = false;
+    if(removeImageBtn) (removeImageBtn as HTMLButtonElement).disabled = false;
   }else{
-    if(importImageBtn) importImageBtn.disabled = true;
-    if(removeImageBtn) removeImageBtn.disabled = true;
+    if(importImageBtn) (importImageBtn as HTMLButtonElement).disabled = true;
+    if(removeImageBtn) (removeImageBtn as HTMLButtonElement).disabled = true;
   }
   
   if(toggleWireframeCheckbox) (toggleWireframeCheckbox as HTMLInputElement).checked = false;
