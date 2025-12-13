@@ -63,6 +63,19 @@ if(removeImageBtn) (removeImageBtn as HTMLButtonElement).disabled = true;
 // https://stackoverflow.com/questions/76706744/whats-the-most-performant-way-to-encode-an-mp4-video-of-frames-from-a-webgl-can
 // https://stackoverflow.com/questions/60882162/im-not-able-to-view-the-total-length-of-the-recorded-video-and-the-timelines
 // https://stackoverflow.com/questions/39302814/mediastream-capture-canvas-and-audio-simultaneously
+// about recording quality via MediaRecorder:
+// https://groups.google.com/g/discuss-webrtc/c/D_yf0-vFRzY
+// https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/videoBitsPerSecond
+// https://stackoverflow.com/questions/65800159/how-do-you-determine-bitspersecond-for-media-recording
+function getVideoBitsPerSecond(): number {
+  const selectedOption = document.getElementById('recordingQuality');
+  if(selectedOption === null){
+    return 2500000; // default recording quality is 480p
+  }
+  
+  return parseInt((selectedOption as HTMLSelectElement).value);
+}
+
 function startCanvasRecord(renderer: WebGLRenderer){
   if(!mediaRecorder){
     if(canvasContainer) canvasContainer.style.border = '3px solid #ff0000'; // red border
@@ -72,7 +85,10 @@ function startCanvasRecord(renderer: WebGLRenderer){
     const audioTrack = audioManager.mediaStreamDestination.stream.getAudioTracks()[0];
     canvasStream.addTrack(audioTrack); // make sure we record the audio too
     
-    mediaRecorder = new MediaRecorder(canvasStream, {mimeType: 'video/webm'});
+    const videoBitsPerSec = getVideoBitsPerSecond();
+    console.log(`recording video bits per second: ${videoBitsPerSec}`);
+    
+    mediaRecorder = new MediaRecorder(canvasStream, {videoBitsPerSecond: videoBitsPerSec, mimeType: 'video/webm'});
     
     mediaRecorder.ondataavailable = (e) => {
       capturedVideoChunks.push(e.data);
