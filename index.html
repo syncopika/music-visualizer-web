@@ -172,7 +172,7 @@
     }
     
   </style>
-  <script type="module" crossorigin src="/music-visualizer-web/assets/index-CWYdt-fO.js"></script>
+  <script type="module" crossorigin src="/music-visualizer-web/assets/index-DXt1o4jT.js"></script>
 </head>
 
 <body>
@@ -303,11 +303,19 @@
       <div id='toggleRecording'>
         <label for='toggleRecordingCheckbox' id='toggleRecordingLabel'> record: </label>
         <input id='toggleRecordingCheckbox' type='checkbox' />
+        
+        <label for='recordingQuality' id='recordingQualityOptionsLabel'> recording quality: </label>
+        <select id='recordingQuality'>
+          <option value='2500000'>480p</option>
+          <option value='5000000'>720p</option>
+          <option value='8000000'>1080p</option>
+        </select>
       </div>
     </div>
     <canvas id='waveformCanvas'></canvas>
   </main>
-  
+  
+
 </body>
 
 </html>
