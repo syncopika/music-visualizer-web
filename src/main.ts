@@ -70,7 +70,7 @@ if(removeImageBtn) (removeImageBtn as HTMLButtonElement).disabled = true;
 function getVideoBitsPerSecond(): number {
   const selectedOption = document.getElementById('recordingQuality');
   if(selectedOption === null){
-    return 2500000; // default recording quality is 480p
+    return 2500000; // default recording quality is 480p, which is 2.5 Mbps
   }
   
   return parseInt((selectedOption as HTMLSelectElement).value);
@@ -247,7 +247,6 @@ function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
       visualizerOptions?.appendChild(newSliderDiv);
     }
   });
-  //visualizerOptions?.appendChild(document.createElement('hr'));
 }
 
 function switchVisualizer(evt: Event){
@@ -256,6 +255,14 @@ function switchVisualizer(evt: Event){
   // reset camera in case it was rotated or moved
   camera.position.set(0, 2, 8);
   camera.rotation.set(0, 0, 0);
+  
+  // the pixels shader visualizer is kinda weird and still a bit mysterious to me so for now,
+  // make sure we force reset the analyser fft to 2048 since that seems to be the only working option atm
+  if(selected === 'pixels'){
+    if(fftSizeDropdown) (fftSizeDropdown as HTMLSelectElement).value = "2048";
+    const newFftSize = 2048;
+    if(audioManager) audioManager.changeFftSize(newFftSize);
+  }
   
   switch(selected){
     case 'waveform':
@@ -311,6 +318,13 @@ function switchVisualizer(evt: Event){
     if(removeImageBtn) (removeImageBtn as HTMLButtonElement).disabled = true;
   }
   
+  // don't allow toggling fft size for the pixels shader visualizer
+  if(selected === 'pixels'){
+    if(fftSizeDropdown) (fftSizeDropdown as HTMLSelectElement).disabled = true;
+  }else{
+    if(fftSizeDropdown) (fftSizeDropdown as HTMLSelectElement).disabled = false;
+  }
+  
   if(toggleWireframeCheckbox) (toggleWireframeCheckbox as HTMLInputElement).checked = false;
   
   if(visualizer) displayVisualizerConfigurableParams(visualizer);
@@ -357,7 +371,7 @@ vizColorPicker?.addEventListener('change', (evt: Event) => {
 
 fftSizeDropdown?.addEventListener('change', (evt: Event) => {
   const target = evt.target as HTMLSelectElement;
-  const newFftSize = parseInt(target.selectedOptions[0].text);
+  const newFftSize = parseInt(target.value);
   if(audioManager) audioManager.changeFftSize(newFftSize);
 });
 

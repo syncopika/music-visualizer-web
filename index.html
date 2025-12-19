@@ -23,7 +23,7 @@
       font-weight: normal;
     }
     
-    button:hover {
+    button:enabled {
       cursor: pointer;
     }
     
@@ -120,6 +120,7 @@
       justify-content: center;
       gap: 10px;
       align-items: center;
+      flex-wrap: wrap;
     }
     
     .visualizerSection p, select {
@@ -234,14 +235,14 @@
             </svg>
           </a>
           <select id='fftSizeSelect'>
-            <option>32</option>
-            <option>64</option>
-            <option>128</option>
-            <option>256</option>
-            <option>512</option>
-            <option>1024</option>
-            <option selected>2048</option>
-            <option>4096</option>
+            <option value="32">32</option>
+            <option value="64">64</option>
+            <option value="128">128</option>
+            <option value="256">256</option>
+            <option value="512">512</option>
+            <option value="1024">1024</option>
+            <option value="2048" selected>2048</option>
+            <option value="4096">4096</option>
           </select>
         </div>
         

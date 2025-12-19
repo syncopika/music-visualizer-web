@@ -10,6 +10,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   Texture,
+  SRGBColorSpace,
 } from 'three';
 
 export class SceneManager {
@@ -118,7 +119,12 @@ export class SceneManager {
   }
   
   updateTexture(texture: Texture | null){
+    this.texture = texture;
     if(texture !== null){
+      // important so the texture doesn't look lighter than the original images
+      // https://discourse.threejs.org/t/videotexture-is-bright-and-washed-out/60287
+      texture.colorSpace = SRGBColorSpace;
+      
       this.scene.children.forEach(child => {
         if(child.type === 'Group'){
           (child.children as Mesh[]).forEach(c => {

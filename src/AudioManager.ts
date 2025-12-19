@@ -1,4 +1,3 @@
-// TODO: need web audio types
 export class AudioManager {
   audioContext:            AudioContext;
   mediaStreamDestination:  MediaStreamAudioDestinationNode
