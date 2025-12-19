@@ -9,6 +9,12 @@ import { AudioManager } from '../AudioManager';
 // https://github.com/syncopika/room-designer/blob/main/src/index.js#L742
 // https://github.com/syncopika/room-designer/blob/main/src/index.js#L407
 
+// TODO:
+// add option to:
+// take into account audio data (time domain? frequency?)
+// based on audio data avg (use avg?), adjust texture colors accordingly
+// e.g. stronger beats = brighter colors?
+
 import {
   Mesh,
   Group,

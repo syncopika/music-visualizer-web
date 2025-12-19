@@ -56,12 +56,7 @@ export class Pixels extends VisualizerBase {
     
     this.uniforms = {
       tAudioData: {
-        value: new DataTexture(
-          this.audioManager.buffer,
-          128 / 2,  // 128 == fft size
-          1,
-          RGBAFormat,
-        )
+        value: new DataTexture(this.audioManager.buffer, 64, 1, RGBAFormat), // it seems we can go up to 512 for the width before we get "ArrayBufferView not big enough for request" errors
       }
     };
   }
