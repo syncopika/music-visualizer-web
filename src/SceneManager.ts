@@ -119,6 +119,7 @@ export class SceneManager {
   }
   
   updateTexture(texture: Texture | null){
+    this.texture = texture;
     if(texture !== null){
       // important so the texture doesn't look lighter than the original images
       // https://discourse.threejs.org/t/videotexture-is-bright-and-washed-out/60287
