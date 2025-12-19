@@ -10,8 +10,7 @@ import { AudioManager } from '../AudioManager';
 // https://github.com/syncopika/room-designer/blob/main/src/index.js#L742
 // https://github.com/syncopika/room-designer/blob/main/src/index.js#L407
 
-// TODO:
-// add option to:
+// also allows option to:
 // take into account audio data (time domain? frequency?)
 // based on audio data avg (use avg?), adjust texture colors accordingly
 // e.g. stronger beats = brighter colors?
@@ -23,16 +22,24 @@ import {
   MeshBasicMaterial,
   ShaderMaterial,
   DoubleSide,
+  Texture
 } from 'three';
 
 export class ImagePlane extends VisualizerBase {
   visualization: Group;
+  texture: Texture | null;
+  vertexShader: string;
+  fragmentShader: string;
+  uniforms: Record<string, any>;
+  meshBasicMaterial: MeshBasicMaterial;
+  shaderMaterial: ShaderMaterial;
+  plane: Mesh;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager){
     super(name, sceneManager, audioManager);
     this.visualization = new Group();
     
-    const params: Record<string, ConfigurableParameterRange> = {
+    const params: Record<string, ConfigurableParameterRange | ConfigurableParameterToggle> = {
       'xPos': {value: 0, min: -15, max: 15, step: 0.5},
       'yPos': {value: 1.5, min: -15, max: 15, step: 0.5},
       'zPos': {value: -25, min: -50, max: 10, step: 0.5},
@@ -63,7 +70,6 @@ export class ImagePlane extends VisualizerBase {
 			uniform float uAudioDataAvg;
 			varying vec2 vUv;
 
-      // TODO: inverse proportion? larger audio data value -> color gets "brighter" -> closer to 255?
 			void main(){
 				vec4 color = texture2D(img, vUv);
         gl_FragColor = mix(vec4(1., 1., 1., 1.), color, uAudioDataAvg / 50.);
@@ -92,9 +98,10 @@ export class ImagePlane extends VisualizerBase {
     this.plane = new Mesh(planeGeometry, this.meshBasicMaterial);
   }
   
-  getAudioDataAvg(buf){
+  getAudioDataAvg(buf: Uint8Array): number {
     // we're assuming time domain data
     // TODO: should we only care about the positive values?
+    // needs more fine-tuning (also need to fine-tune gl_FragColor mixing)
     let total = 0;
     for(let i = 0; i < buf.length; i++){
       total += buf[i];
@@ -138,7 +145,7 @@ export class ImagePlane extends VisualizerBase {
     this.updateShaderMaterial();
     
     // check if we need to switch materials
-    if(this.configurableParams.useShaderMaterial.isOn){
+    if((this.configurableParams.useShaderMaterial as ConfigurableParameterToggle).isOn){
       if(this.plane.material != this.shaderMaterial){
         console.log('using shader material');
         this.plane.material = this.shaderMaterial;
