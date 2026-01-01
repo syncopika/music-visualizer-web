@@ -52,7 +52,7 @@ export class SphericalCubes extends VisualizerBase {
       
       box.position.copy(position);
       
-      // orient the box to face the direction of the vector created from origin -> position (e.g. normal vector)
+      // orient the box to face the direction of the vector created from origin -> position (e.g. forward vector)
       const lookAtPoint = position.normalize();
       box.lookAt(lookAtPoint);
       
@@ -117,7 +117,6 @@ export class SphericalCubes extends VisualizerBase {
         const value = buffer[i * increment] / 255;
         const newVal = value * 12;
         const obj = this.visualization.children[i];
-        //console.log(`i: ${i}, delta x: ${obj.scale.x - newVal}, new val: ${newVal}`);
         
         let valToScaleTo;
         
@@ -127,10 +126,10 @@ export class SphericalCubes extends VisualizerBase {
         }else{
           valToScaleTo = this.scaleTo[i];
         }
-      
+        
         obj.scale.lerpVectors(
           obj.scale, 
-          new Vector3(valToScaleTo, 1, 1), 
+          new Vector3(1, 1, valToScaleTo), // scale on cube's local z axis, which should correspond to the direction the cube is facing
           lerpAmount,
         );
       }

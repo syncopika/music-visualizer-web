@@ -275,7 +275,7 @@ function switchVisualizer(evt: Event){
       visualizer.init();
       break;
     case 'spherical-cubes':
-      visualizer = new SphericalCubes('spherical-cubes', sceneManager, audioManager, 50);
+      visualizer = new SphericalCubes('spherical-cubes', sceneManager, audioManager, 60);
       visualizer.init();
       break;
     case 'starfield':
