@@ -4,13 +4,14 @@ import { AudioManager } from '../AudioManager';
 
 import {
   Mesh,
+  BoxGeometry,
   SphereGeometry,
   MeshPhongMaterial,
   Vector3,
   Group,
 } from 'three';
 
-export class Spheres extends VisualizerBase {
+export class SphericalCubes extends VisualizerBase {
   numObjects: number;
   visualization: Group;
   lastTime: number;
@@ -30,7 +31,7 @@ export class Spheres extends VisualizerBase {
       if(
         !c.type.toLowerCase().includes('camera') && 
         !c.type.toLowerCase().includes('light'))
-      {
+      {  
         this.scene.remove(c);
       }
     });
@@ -42,17 +43,20 @@ export class Spheres extends VisualizerBase {
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
     
-    const createVisualizationSphere = (position: Vector3): Mesh => {
-      const geometry = new SphereGeometry(10, 28, 16);
-      const material = new MeshPhongMaterial({color: '#2f88f5', transparent: true});
-      const sphere = new Mesh(geometry, material);
+    const createVisualizationCube = (position: Vector3): Mesh => {
+      const boxGeometry = new BoxGeometry(0.4, 0.4, 0.4);
+      const boxMaterial = new MeshPhongMaterial({color: '#ffffdd'}); // TODO: color gradient?
+      const box = new Mesh(boxGeometry, boxMaterial);
+      box.receiveShadow = true;
+      box.castShadow = true;
       
-      sphere.position.copy(position.normalize());
+      box.position.copy(position);
       
-      const scale = Math.random() * (0.085 - 0.045) + 0.045;
-      sphere.scale.set(scale, scale, scale); //0.08, 0.08, 0.08);
+      // orient the box to face the direction of the vector created from origin -> position (e.g. forward vector)
+      const lookAtPoint = position.normalize();
+      box.lookAt(lookAtPoint);
       
-      return sphere;
+      return box;
     };
     
     const getRandomVertex = (geometry: SphereGeometry): Vector3 => {
@@ -62,14 +66,15 @@ export class Spheres extends VisualizerBase {
       return new Vector3(verts[randVertIdx], verts[randVertIdx + 1], verts[randVertIdx + 2]);
     }
     
-    const skeletonGeometry = new SphereGeometry(15, 32, 16);
+    const skeletonGeometry = new SphereGeometry(20, 32, 16);
     
     for(let i = 0; i < bufferLen; i += increment){
       // TODO: get a random vertex but uniformly distributed?
       // https://mathworld.wolfram.com/SpherePointPicking.html
       // https://corysimon.github.io/articles/uniformdistn-on-sphere/
+      // arrange cubes in a sphere
       const spherePos = getRandomVertex(skeletonGeometry);
-      this.visualization.add(createVisualizationSphere(spherePos));
+      this.visualization.add(createVisualizationCube(spherePos));
     }
     
     this.scene.add(this.visualization);
@@ -112,7 +117,6 @@ export class Spheres extends VisualizerBase {
         const value = buffer[i * increment] / 255;
         const newVal = value * 12;
         const obj = this.visualization.children[i];
-        //console.log(`i: ${i}, delta x: ${obj.scale.x - newVal}, new val: ${newVal}`);
         
         let valToScaleTo;
         
@@ -123,25 +127,15 @@ export class Spheres extends VisualizerBase {
           valToScaleTo = this.scaleTo[i];
         }
         
-        const lerpTo = new Vector3();
-        lerpTo
-          .copy(obj.position)
-          .normalize()
-          .multiplyScalar(valToScaleTo * 2.1);
-        
-        obj.position.lerpVectors(
-          obj.position,
-          lerpTo, 
+        obj.scale.lerpVectors(
+          obj.scale, 
+          new Vector3(1, 1, valToScaleTo), // scale on cube's local z axis, which should correspond to the direction the cube is facing
           lerpAmount,
         );
-        
-        const mat = (obj as Mesh).material as MeshPhongMaterial;
-        mat.opacity = obj.position.distanceTo(new Vector3(0, 0, 0)) / 10;
-        //console.log(obj.material.opacity);
       }
     }
     
-    this.visualization.rotateZ(Math.PI / 500);
+    this.visualization.rotateY(Math.PI / 2500);
     
     this.doPostProcessing();
   }

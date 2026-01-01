@@ -21,7 +21,8 @@ interface Orbit {
 // https://math.stackexchange.com/questions/4538624/3d-parametric-equations-for-an-elliptical-orbit-using-inclination-angle
 // https://stackoverflow.com/questions/26767512/i-need-an-equation-for-equal-movement-along-an-ellipse
 // https://flexbooks.ck12.org/cbook/ck-12-precalculus-concepts-2.0/section/10.3/related/lesson/parametric-equations-for-circles-and-ellipses-calc/
-// https://math.stackexchange.com/questions/1897028/ellipse-in-3d-space-tilted-wrt-z-axis
+// https://math.stackexchange.com/questions/1897028/ellipse-in-3d-space-tilted-wrt-z-axis -> this post seems to have been removed :(
+// https://math.stackexchange.com/questions/3994666/parametric-equation-of-an-ellipse-in-the-3d-space
 export class Orbits extends VisualizerBase {
   numObjects: number;
   visualization: Group;
