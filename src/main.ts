@@ -16,6 +16,7 @@ import { Waveform } from './visualizations/Waveform';
 import { Starfield } from './visualizations/Starfield';
 import { Pixels } from './visualizations/Pixels';
 import { CircularCubes } from './visualizations/CircularCubes';
+import { SphericalCubes } from './visualizations/SphericalCubes';
 import { Blob as AnimatedBlob } from './visualizations/Blob';
 import { Spheres } from './visualizations/Spheres';
 import { Waves } from './visualizations/Waves';
@@ -271,6 +272,10 @@ function switchVisualizer(evt: Event){
       break;
     case 'circular-cubes':
       visualizer = new CircularCubes('circular-cubes', sceneManager, audioManager, 50);
+      visualizer.init();
+      break;
+    case 'spherical-cubes':
+      visualizer = new SphericalCubes('spherical-cubes', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     case 'starfield':
