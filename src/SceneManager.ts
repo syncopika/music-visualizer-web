@@ -21,9 +21,9 @@ export class SceneManager {
   clock: Clock;
   texture: Texture | null;
   
-  constructor(container: HTMLCanvasElement){
+  constructor(container: HTMLDivElement){
     const scene = new Scene();
-    scene.background = new Color(0x111e37); //new Color(0xeeeeee);
+    scene.background = new Color(0x111e37);
     this.scene = scene;
     
     const renderer = new WebGLRenderer({antialias: true});
@@ -46,7 +46,7 @@ export class SceneManager {
     this.camera = camera;    
     
     // https://discourse.threejs.org/t/upgraded-to-latest-r160-and-my-lighting-has-changed/59879
-    const light = new SpotLight(); //0x34fcc5);
+    const light = new SpotLight();
     light.position.set(0, 20, 0);
     light.castShadow = true;
     light.shadow.mapSize.width = 1024;

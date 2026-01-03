@@ -438,7 +438,7 @@ removeImageBtn?.addEventListener('click', () => {
 });
 
 // 3d stuff setup
-const sceneManager = new SceneManager((canvasContainer as HTMLCanvasElement)); // initializes a scene
+const sceneManager = new SceneManager((canvasContainer as HTMLDivElement)); // initializes a scene
 const renderer = sceneManager.renderer;
 const scene = sceneManager.scene;
 const camera = sceneManager.camera;
