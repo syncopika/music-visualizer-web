@@ -1,11 +1,37 @@
+/*
+  WIP
+  
+  idea: use web worker for 3d visualizer rendering
+  
+  main obj: to render scene on a large canvas, e.g. 1920 x 1080
+  so that recording quality is correct/matches 1080p, etc. 
+  
+  I think the current recording quality is still not right even given the right video bitrate
+  and I believe it has to do with the resolution of the canvas since:
+  1080p video, also known as Full HD, has a resolution of 1920 x 1080 pixels with a 16:9 aspect ratio (according to Gemini)
+  
+  Gemini also had this to say when I googled: "1080p video bitrate canvas html still blurry?"
+  
+  A blurry HTML canvas when displaying 1080p video is usually caused by a mismatch between the canvas element's intrinsic (bitmap) size and its CSS display size, or an issue with the device's pixel ratio. 
+  Bitrate is less likely to be the primary issue if the source video itself is clear. 
+  
+  web worker will render 3d scene on offscreen canvas
+  and we'll draw the resulting scene back to the main thread canvas (and scale it as needed)
+  
+  also might have some performance improvements as well?
+*/
+
 import { 
   WebGLRenderer,
   TextureLoader,
 } from 'three';
 
+// TODO: no need for scenemanager here when using web worker,
+// since the web worker will be responsible for scene management?
 import { SceneManager } from './SceneManager';
 import { AudioManager } from './AudioManager';
 
+// TODO: visualizers should be initialized in the web worker?
 // visualizers
 import { 
   VisualizerBase, 
@@ -124,6 +150,7 @@ function stopCanvasRecord(){
   }
 }
 
+// TODO: move this to a web worker script
 function update(){
   renderer.render(scene, camera);
   requestAnimationFrame(update);
@@ -159,6 +186,9 @@ function stopVisualization(){
     console.log('stopping record');
     stopCanvasRecord();
     isRecording = false;
+    
+    // TODO: we'll probably need to send a message to the web worker to stop the visualization since the rendering
+    // will be controlled via web worker 
   }
 }
 
@@ -220,6 +250,11 @@ function makeSlider(name: string, parameter: ConfigurableParameterRange): HTMLEl
   return div;
 }
 
+// TODO: need to send msg to web worker?
+// this one feels a bit tricky. maybe the web worker can send us a message back of the 
+// selected visualizer's configurable params. 
+// in this main thread I think we won't have access
+// to the visualizer objects anymore since they should all be in the web worker 
 function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
   // clear visualizer-specific parameter section
   visualizerOptions?.replaceChildren();
@@ -250,6 +285,9 @@ function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
   });
 }
 
+// TODO: need to send msg to web worker? this code should be placed in the web worker
+// audioManager should stay here though with the main thread stuff (can't use web audio in a web worker anyway)
+// when we change fftSize, we should send a message to the web worker about it?
 function switchVisualizer(evt: Event){
   const selected = (evt.target as HTMLSelectElement).value;
   
@@ -366,11 +404,14 @@ hideDrawer?.addEventListener('click', () => {
 
 bgColorPicker?.addEventListener('change', (evt: Event) => {
   const target = evt.target as HTMLInputElement;
+  // TODO: need to send msg to web worker? anything that updates the scenemanager should be a msg to web worker I think
+  // since scene management should have to be done in the web worker
   if(sceneManager && target) sceneManager.updateSceneBackgroundColor(target.value);
 });
 
 vizColorPicker?.addEventListener('change', (evt: Event) => {
   const target = evt.target as HTMLInputElement;
+  // TODO: need to send msg to web worker?
   if(sceneManager && target) sceneManager.changeVisualizationColor(target.value);
 });
 
@@ -388,6 +429,7 @@ fftSizeDropdown?.addEventListener('change', (evt: Event) => {
       const val = parseInt(target.value);
       const text = document.getElementById(`${axis}Value`);
       if(text) text.textContent = `${val}`;
+      // TODO: need to send msg to web worker?
       if(sceneManager) sceneManager.updateSceneLighting(axis, val);
     });
   }
@@ -421,6 +463,7 @@ importImageBtn?.addEventListener('click', () => {
         reader.onloadend = function(){
           if(reader.result && typeof reader.result === 'string'){
             const newTexture = new TextureLoader().load(reader.result);
+            // TODO: need to send msg to web worker?
             sceneManager.updateTexture(newTexture);
           }
         };
@@ -433,11 +476,15 @@ importImageBtn?.addEventListener('click', () => {
 removeImageBtn?.addEventListener('click', () => {
   // remove texture from all children of scene
   if(sceneManager){
+    // TODO: need to send msg to web worker?
     sceneManager.updateTexture(null);
   }
 });
 
 // 3d stuff setup
+// TODO: need to send msg to web worker for this set up. scene management should be handled in the web worker
+// since it will be rendering to a big offscreen canvas. this should make the resolution more correct I think 
+// for recording quality (e.g. 1080p should be rendered on a 1920 x 1080 canvas initially)
 const sceneManager = new SceneManager((canvasContainer as HTMLDivElement)); // initializes a scene
 const renderer = sceneManager.renderer;
 const scene = sceneManager.scene;
