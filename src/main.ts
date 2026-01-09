@@ -19,41 +19,12 @@
   and we'll draw the resulting scene back to the main thread canvas (and scale it as needed)
   
   also might have some performance improvements as well?
+  curious about any latency between audio and visualization start though - since audio will be handled via main thread and visualization is by web worker
 */
 
-import { 
-  WebGLRenderer,
-  TextureLoader,
-} from 'three';
-
-// TODO: no need for scenemanager here when using web worker,
-// since the web worker will be responsible for scene management?
-import { SceneManager } from './SceneManager';
-import { AudioManager } from './AudioManager';
-
-// TODO: visualizers should be initialized in the web worker?
-// visualizers
-import { 
-  VisualizerBase, 
-  ConfigurableParameterRange,
-  ConfigurableParameterToggle,
-} from './visualizations/VisualizerBase';
-import { Waveform } from './visualizations/Waveform';
-import { Starfield } from './visualizations/Starfield';
-import { Pixels } from './visualizations/Pixels';
-import { CircularCubes } from './visualizations/CircularCubes';
-import { SphericalCubes } from './visualizations/SphericalCubes';
-import { Blob as AnimatedBlob } from './visualizations/Blob';
-import { Spheres } from './visualizations/Spheres';
-import { Waves } from './visualizations/Waves';
-import { Lights } from './visualizations/Lights';
-import { Orbits } from './visualizations/Orbits';
-import { ImagePlane } from './visualizations/Image';
 
 // global variables
 let isPlaying = false;
-let visualizer: VisualizerBase | null = null;
-
 let isRecording = false;
 let recordingOn = false;
 let mediaRecorder: MediaRecorder | null = null;
@@ -303,55 +274,6 @@ function switchVisualizer(evt: Event){
     if(audioManager) audioManager.changeFftSize(newFftSize);
   }
   
-  switch(selected){
-    case 'waveform':
-      visualizer = new Waveform('waveform', sceneManager, audioManager, 50);
-      visualizer.init();
-      break;
-    case 'circular-cubes':
-      visualizer = new CircularCubes('circular-cubes', sceneManager, audioManager, 50);
-      visualizer.init();
-      break;
-    case 'spherical-cubes':
-      visualizer = new SphericalCubes('spherical-cubes', sceneManager, audioManager, 60);
-      visualizer.init();
-      break;
-    case 'starfield':
-      visualizer = new Starfield('starfield', sceneManager, audioManager, 200);
-      visualizer.init();
-      break;
-    case 'pixels':
-      visualizer = new Pixels('pixels', sceneManager, audioManager);
-      visualizer.init();    
-      break;
-    case 'blob':
-      visualizer = new AnimatedBlob('blob', sceneManager, audioManager);
-      visualizer.init();
-      break;
-    case 'spheres':
-      visualizer = new Spheres('spheres', sceneManager, audioManager, 50);
-      visualizer.init();
-      break;
-    case 'waves':
-      visualizer = new Waves('waves', sceneManager, audioManager, 50);
-      visualizer.init();
-      break;
-    case 'lights':
-      visualizer = new Lights('lights', sceneManager, audioManager, 30);
-      visualizer.init();
-      break;
-    case 'orbits':
-      visualizer = new Orbits('orbits', sceneManager, audioManager, 40);
-      visualizer.init();
-      break;
-    case 'image':
-      visualizer = new ImagePlane('imagePlane', sceneManager, audioManager);
-      visualizer.init();
-      break;
-    default:
-      break;
-  }
-  
   // only show image import/image clear buttons if the visualizer is the image visualizer
   if(selected === 'image'){
     if(importImageBtn) (importImageBtn as HTMLButtonElement).disabled = false;
@@ -370,7 +292,8 @@ function switchVisualizer(evt: Event){
   
   if(toggleWireframeCheckbox) (toggleWireframeCheckbox as HTMLInputElement).checked = false;
   
-  if(visualizer) displayVisualizerConfigurableParams(visualizer);
+  // TODO: send msg to web worker about changes like fftSize
+  //if(visualizer) displayVisualizerConfigurableParams(visualizer);
 }
 
 // start
@@ -481,10 +404,22 @@ removeImageBtn?.addEventListener('click', () => {
   }
 });
 
+// setup web worker for rendering 3d scene
+if(window.Worker){
+  const worker = new Worker('worker.ts');
+  
+  // send msg
+  // worker.postMessage();
+  // worker.onmessage = (evt) => {};
+  // msg: update configurable parameters
+}else{
+  console.log('web worker not available! :(');
+}
+
 // 3d stuff setup
 // TODO: need to send msg to web worker for this set up. scene management should be handled in the web worker
 // since it will be rendering to a big offscreen canvas. this should make the resolution more correct I think 
-// for recording quality (e.g. 1080p should be rendered on a 1920 x 1080 canvas initially)
+/* for recording quality (e.g. 1080p should be rendered on a 1920 x 1080 canvas initially)
 const sceneManager = new SceneManager((canvasContainer as HTMLDivElement)); // initializes a scene
 const renderer = sceneManager.renderer;
 const scene = sceneManager.scene;
@@ -498,3 +433,4 @@ visualizer.init();
 displayVisualizerConfigurableParams(visualizer);
 
 update();
+*/
