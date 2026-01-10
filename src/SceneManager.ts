@@ -26,8 +26,11 @@ export class SceneManager {
     scene.background = new Color(0x111e37);
     this.scene = scene;
     
+    const canvasWidth = 1920;
+    const canvasHeight = 1080;
+
     const renderer = new WebGLRenderer({antialias: true});
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(canvasWidth, canvasHeight, false); // set the rendering canvas' width and height attributes (not the css width/height)
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
@@ -35,9 +38,9 @@ export class SceneManager {
     
     const fov = 60;
     const camera = new PerspectiveCamera(
-      fov, 
-      container.clientWidth / container.clientHeight, 
-      0.01, 
+      fov,
+      container.clientWidth / container.clientHeight,
+      0.01,
       1000
     );
       

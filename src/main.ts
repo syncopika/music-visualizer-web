@@ -89,7 +89,13 @@ function startCanvasRecord(renderer: WebGLRenderer){
     const videoBitsPerSec = getVideoBitsPerSecond();
     console.log(`recording video bits per second: ${videoBitsPerSec}`);
     
-    mediaRecorder = new MediaRecorder(canvasStream, {videoBitsPerSecond: videoBitsPerSec, mimeType: 'video/webm'});
+    mediaRecorder = new MediaRecorder(
+      canvasStream,
+      {
+        videoBitsPerSecond: videoBitsPerSec,
+        mimeType: 'video/webm; codecs=vp9'
+      }
+    );
     
     mediaRecorder.ondataavailable = (e) => {
       capturedVideoChunks.push(e.data);
@@ -254,7 +260,7 @@ function switchVisualizer(evt: Event){
   const selected = (evt.target as HTMLSelectElement).value;
   
   // reset camera in case it was rotated or moved
-  camera.position.set(0, 2, 8);
+  camera.position.set(0, 2, 8); // TODO: store these important coordinates somewhere where it can be reused?
   camera.rotation.set(0, 0, 0);
   
   // the pixels shader visualizer is kinda weird and still a bit mysterious to me so for now,
