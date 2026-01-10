@@ -44,42 +44,26 @@ displayVisualizerConfigurableParams(visualizer);
 update();
 
 
-// message handling
-onmessage = (evt) => {
-  // msg: switch visualizer 
+function update(){
+  renderer.render(scene, camera);
+  requestAnimationFrame(update);
+  if(visualizer && isPlaying){
+    visualizer.update();
+  }
   
-  // msg: update fft size
-  
-  // msg: update texture
-  
-  // msg: change video quality
-  
-  // msg: update scene lighting
-  
-  // msg: update visualization color
-  
-  // msg: update scene background color
-  
-  // msg: start visualizer
-  
-  // msg: stop visualizer
-};
-
+  // if recording, check if now >= expectedStopTime and stop recording
+  if(isRecording){
+    const now = Date.now();
+    if(expectedStopTime && now >= expectedStopTime){
+      stopVisualization();
+    }
+  }
+}
 
 function switchVisualizer(evt: Event){
-  const selected = (evt.target as HTMLSelectElement).value;
-  
   // reset camera in case it was rotated or moved
   camera.position.set(0, 2, 8);
   camera.rotation.set(0, 0, 0);
-  
-  // the pixels shader visualizer is kinda weird and still a bit mysterious to me so for now,
-  // make sure we force reset the analyser fft to 2048 since that seems to be the only working option atm
-  if(selected === 'pixels'){
-    if(fftSizeDropdown) (fftSizeDropdown as HTMLSelectElement).value = "2048";
-    const newFftSize = 2048;
-    if(audioManager) audioManager.changeFftSize(newFftSize);
-  }
   
   switch(selected){
     case 'waveform':
@@ -133,3 +117,27 @@ function switchVisualizer(evt: Event){
   // TODO: send msg to main thread/frontend about this
   //if(visualizer) displayVisualizerConfigurableParams(visualizer);
 }
+
+// message handling
+self.onmessage = (evt) => {
+  // msg: switch visualizer 
+  
+  // msg: update fft size
+  
+  // msg: update texture
+  
+  // msg: change video quality
+  
+  // msg: update scene lighting
+  
+  // msg: update visualization color
+  
+  // msg: update scene background color
+  
+  // msg: start visualizer
+  
+  // msg: stop visualizer
+};
+
+// empty export so TypeScript treats this as a module
+export {};

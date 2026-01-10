@@ -22,8 +22,13 @@
   curious about any latency between audio and visualization start though - since audio will be handled via main thread and visualization is by web worker
 */
 
+import { AudioManager } from './AudioManager';
+
+// import web worker script
+import Worker from './worker.ts?worker';
 
 // global variables
+let worker: Worker | null = null;
 let isPlaying = false;
 let isRecording = false;
 let recordingOn = false;
@@ -121,22 +126,6 @@ function stopCanvasRecord(){
   }
 }
 
-// TODO: move this to a web worker script
-function update(){
-  renderer.render(scene, camera);
-  requestAnimationFrame(update);
-  if(visualizer && isPlaying){
-    visualizer.update();
-  }
-  
-  // if recording, check if now >= expectedStopTime and stop recording
-  if(isRecording){
-    const now = Date.now();
-    if(expectedStopTime && now >= expectedStopTime){
-      stopVisualization();
-    }
-  }
-}
 
 function playVisualization(){
   audioManager.play();
@@ -261,10 +250,6 @@ function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
 // when we change fftSize, we should send a message to the web worker about it?
 function switchVisualizer(evt: Event){
   const selected = (evt.target as HTMLSelectElement).value;
-  
-  // reset camera in case it was rotated or moved
-  camera.position.set(0, 2, 8);
-  camera.rotation.set(0, 0, 0);
   
   // the pixels shader visualizer is kinda weird and still a bit mysterious to me so for now,
   // make sure we force reset the analyser fft to 2048 since that seems to be the only working option atm
@@ -404,14 +389,26 @@ removeImageBtn?.addEventListener('click', () => {
   }
 });
 
+function postMsgToWorker(msg){
+  if(!worker){
+    console.error('worker is null!');
+  }else{
+    worker.postMessage(msg);
+  }
+}
+
+function handleMsgFromWorker(evt: MessageEvent)){
+  // msg: update configurable parameters
+}
+
 // setup web worker for rendering 3d scene
 if(window.Worker){
-  const worker = new Worker('worker.ts');
+  worker = new Worker();
   
   // send msg
   // worker.postMessage();
-  // worker.onmessage = (evt) => {};
-  // msg: update configurable parameters
+  
+  worker.onmessage = handleMsgFromWorker;
 }else{
   console.log('web worker not available! :(');
 }
