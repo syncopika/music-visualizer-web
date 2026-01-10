@@ -4,6 +4,8 @@ import {
   Clock,
   WebGLRenderer,
   Vector2,
+  HalfFloatType, // for high-precision buffers to try to reduce color banding?
+  WebGLRenderTarget,
 } from 'three';
 
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -44,6 +46,7 @@ export class VisualizerBase {
   bloomPass: UnrealBloomPass;
   afterimagePass: AfterimagePass;
   outputPass: OutputPass;
+  fxaaPass: ShaderPass;
   configurableParams: Record<string, ConfigurableParameterRange | ConfigurableParameterToggle>;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager){
@@ -61,12 +64,20 @@ export class VisualizerBase {
       'bloomThreshold': {value: 0.1, min: 0.0, max: 2.0, step: 0.1, parameterName: 'bloom'},
       'afterimagePass': {isOn: false, parameterName: 'afterimage'},
       'afterimageDamp': {value: 0.5, min: 0.0, max: 1.0, step: 0.1, parameterName: 'afterimage'},
+      'antialias': {isOn: true, parameterName: 'antialias'},
     };
     
-    // post-processing effects
-    this.composer = new EffectComposer(this.renderer);
     const container = this.renderer.domElement;
     if(container){
+      const renderTarget = new WebGLRenderTarget(
+        container.clientWidth,
+        container.clientHeight,
+        {type: HalfFloatType}
+      );
+      
+      // post-processing effects
+      this.composer = new EffectComposer(this.renderer, renderTarget);
+      
       const renderScene = new RenderPass(this.scene, this.camera);
       
       // important: order of addition of effects matters!
@@ -75,10 +86,9 @@ export class VisualizerBase {
         1 / container.clientWidth, 
         1 / container.clientHeight
       );
+      this.fxaaPass = effectFXAA;
       
-      this.composer.setSize(container.clientWidth, container.clientHeight);
       this.composer.addPass(renderScene);
-      this.composer.addPass(effectFXAA);
       
       const afterimageDamp = this.configurableParams.afterimageDamp as ConfigurableParameterRange; 
       this.afterimagePass = new AfterimagePass();
@@ -103,12 +113,15 @@ export class VisualizerBase {
       this.bloomPass.enabled = false;
       
       this.composer.addPass(this.bloomPass);
+      
+      this.composer.addPass(effectFXAA); // antialiasing at end
     }
   }
   
   doPostProcessing(){
     const afterimagePass = this.configurableParams.afterimagePass as ConfigurableParameterToggle;
     const bloomPass = this.configurableParams.bloomPass as ConfigurableParameterToggle;
+    const antialias = this.configurableParams.antialias as ConfigurableParameterToggle;
     
     // bloom pass params
     const strength = this.configurableParams.bloomStrength as ConfigurableParameterRange;
@@ -135,6 +148,8 @@ export class VisualizerBase {
     }else{
       this.bloomPass.enabled = false;
     }
+    
+    this.fxaaPass.enabled = antialias.isOn;
     
     if(afterimagePass.isOn || bloomPass.isOn){
       this.composer.render();
