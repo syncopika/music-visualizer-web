@@ -38,6 +38,9 @@ export class Orbits extends VisualizerBase {
     this.scaleTo = [];
     this.orbits = [];
     
+    // add new configurable param for toggling material opacity
+    this.configurableParams.toggleMaterialOpacity = {isOn: true, parameterName: 'toggleMaterialOpacity'};
+    
     (this.configurableParams.bloomPass as ConfigurableParameterToggle).isOn = true;
   }
   
@@ -191,7 +194,11 @@ export class Orbits extends VisualizerBase {
         );
         
         const mat = (obj as Mesh).material as MeshPhongMaterial;
-        mat.opacity = this.lerp(mat.opacity, valToScaleTo * 1.1, lerpAmount);
+        if((this.configurableParams.toggleMaterialOpacity as ConfigurableParameterToggle).isOn){
+          mat.opacity = this.lerp(mat.opacity, valToScaleTo * 1.1, lerpAmount);
+        }else{
+          mat.opacity = 1.0
+        }
       }
     }
     
