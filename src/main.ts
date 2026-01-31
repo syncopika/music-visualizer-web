@@ -22,6 +22,7 @@ import { Spheres } from './visualizations/Spheres';
 import { Waves } from './visualizations/Waves';
 import { Lights } from './visualizations/Lights';
 import { Orbits } from './visualizations/Orbits';
+import { Ripples } from './visualizations/Ripples';
 import { ImagePlane } from './visualizations/Image';
 
 // global variables
@@ -310,6 +311,10 @@ function switchVisualizer(evt: Event){
       break;
     case 'orbits':
       visualizer = new Orbits('orbits', sceneManager, audioManager, 40);
+      visualizer.init();
+      break;
+    case 'ripples':
+      visualizer = new Ripples('ripples', sceneManager, audioManager, 50);
       visualizer.init();
       break;
     case 'image':
