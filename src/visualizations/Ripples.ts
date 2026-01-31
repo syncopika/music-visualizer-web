@@ -1,4 +1,4 @@
-import { VisualizerBase } from './VisualizerBase';
+import { ConfigurableParameterToggle, VisualizerBase } from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
@@ -6,6 +6,7 @@ import {
   Mesh,
   CircleGeometry,
   MeshPhongMaterial,
+  ShaderMaterial,
   Vector3,
   Group,
 } from 'three';
@@ -16,12 +17,20 @@ export class Ripples extends VisualizerBase {
   lastTime: number;
   scaleTo: number[];
   
+  // keep track of each object's shader + non-shader materials
+  // we need to keep track of them individually, otherwise all the objects
+  // would be using the same material object, which isn't what we want here
+  objectNonShaderMaterial: MeshPhongMaterial[];
+  objectShaderMaterial: ShaderMaterial[];
+  
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
     this.numObjects = size;
     this.visualization = new Group();
     this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
+    this.objectNonShaderMaterial = [];
+    this.objectShaderMaterial = [];
   }
   
   init(){
@@ -34,6 +43,13 @@ export class Ripples extends VisualizerBase {
         this.scene.remove(c);
       }
     });
+    
+    // add new configurable param for toggling material opacity
+    this.configurableParams.toggleMaterialOpacity = {isOn: true, parameterName: 'toggleMaterialOpacity'};
+    
+    // add new configurable param for toggling shader or non-shader material
+    // the shader material gives the closest 'ripple' effect atm so it's the default
+    this.configurableParams.rippleShaderMaterialOn = {isOn: true, parameterName: 'rippleShaderMaterialOn'};
     
     // fix z-position of light (otherwise the ripples will look black)
     // TODO: make sure light control slider for z axis is adjusted!
@@ -48,13 +64,39 @@ export class Ripples extends VisualizerBase {
     
     const createRipple = (position: Vector3): Mesh => {
       const geometry = new CircleGeometry(5, 32);
+      
       const material = new MeshPhongMaterial({color: '#2f88f5', transparent: true});
-      const ripple = new Mesh(geometry, material);
+      this.objectNonShaderMaterial.push(material);
+      
+      const shaderMaterial = new ShaderMaterial({
+        vertexShader: `
+          varying vec2 vUv;
+          void  main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          varying vec2 vUv;
+          void main() {
+            // distance from center
+            float strength = distance(vUv, vec2(0.5));
+            
+            // the alpha color of the circle will be based on distance from center
+            // the closer to the center of the circle, the more transparent
+            float colorAlpha = smoothstep(0.45, 0.5, strength);
+            
+            gl_FragColor = vec4(.184, .533, .960, colorAlpha); // #2f88f5
+          }
+        `,
+        transparent: true, // necessary for alpha channel
+      });
+      this.objectShaderMaterial.push(shaderMaterial);
+      
+      // use shader material by default
+      const ripple = new Mesh(geometry, shaderMaterial);
       
       ripple.position.copy(position);
-      
-      //const scale = Math.random() * (0.085 - 0.045) + 0.045;
-      //ripple.scale.set(scale, scale, scale); //0.08, 0.08, 0.08);
       
       return ripple;
     };
@@ -75,8 +117,6 @@ export class Ripples extends VisualizerBase {
     this.visualization.position.z = -25;
     this.visualization.position.y += 2.5;
     //this.visualization.rotateX(Math.PI / 2);
-    
-    console.log(this.scene);
   }
   
   update(){
@@ -106,7 +146,7 @@ export class Ripples extends VisualizerBase {
         }
       }
     }else{
-      // scale the ripple disc meshes to give a ripple effect (expanding outwards)
+      // scale the ripple disc meshes so they can stretch to help give a ripple effect
       const lerpAmount = (elapsedTime - this.lastTime) / timeInterval;
       
       for(let i = 0; i < numObjects; i++){
@@ -136,9 +176,19 @@ export class Ripples extends VisualizerBase {
           lerpAmount,
         );
         
+        const rippleMaterialOn = (this.configurableParams.rippleShaderMaterialOn as ConfigurableParameterToggle).isOn;
+        if(rippleMaterialOn){
+          (obj as Mesh).material = this.objectShaderMaterial[i];
+        }else{
+          (obj as Mesh).material = this.objectNonShaderMaterial[i];
+        }
+        
         const mat = (obj as Mesh).material as MeshPhongMaterial;
-        mat.opacity = obj.position.distanceTo(new Vector3(0, 0, 0)) / 10;
-        //console.log(obj.material.opacity);
+        if((this.configurableParams.toggleMaterialOpacity as ConfigurableParameterToggle).isOn){
+          mat.opacity = obj.scale.distanceTo(new Vector3(0, 0, 0)) / 10;
+        }else{
+          mat.opacity = 1.0
+        }
       }
     }
     
