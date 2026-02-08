@@ -37,6 +37,13 @@ let expectedStopTime: number | null = null; // should be record start time + dur
 
 const audioManager = new AudioManager();
 
+// visualizers that can be reset (because the placement of their objects is randomized)
+const resettableViz = [
+  'starfield',
+  'lights',
+  'ripples',
+];
+
 // html elements
 const importAudioBtn = document.getElementById('importAudio');
 const canvasContainer = document.getElementById('canvasContainer');
@@ -349,6 +356,13 @@ function switchVisualizer(evt: Event){
   if(toggleWireframeCheckbox) (toggleWireframeCheckbox as HTMLInputElement).checked = false;
   
   if(visualizer) displayVisualizerConfigurableParams(visualizer);
+  
+  // disable reset button if selected visualizer is not one of resettableViz
+  if(resettableViz.includes(selected)){
+    (resetBtn as HTMLButtonElement).disabled = false;
+  }else{
+    (resetBtn as HTMLButtonElement).disabled = true;
+  }
 }
 
 // start
@@ -360,13 +374,7 @@ playBtn?.addEventListener('click', playVisualization);
 stopBtn?.addEventListener('click', stopVisualization);
 resetBtn?.addEventListener('click', () => {
   // TODO: move this functionality under visualizer params? or disable button when selecting a non-resettable visualizer?
-  const resettableViz = [
-    'starfield',
-    'lights',
-    'ripples',
-  ];
   if(visualizer && resettableViz.includes(visualizer.name)){
-    console.log('resetting visualization');
     resetVisualization();
   }
 });
