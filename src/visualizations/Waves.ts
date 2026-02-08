@@ -74,9 +74,10 @@ export class Waves extends VisualizerBase {
     const zSeparation = params.zSeparation as ConfigurableParameterRange;
     const yPos = params.yPos as ConfigurableParameterRange;
 
-    function createVisualizationCube(): Mesh {
+    const createVisualizationCube = (): Mesh => {
       const boxGeometry = new BoxGeometry(0.1, 0.1, 0.1);
-      const boxMaterial = new MeshBasicMaterial({color: '#ffffdd'}); // TODO: color gradient?
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#ffffdd';
+      const boxMaterial = new MeshBasicMaterial({color}); // TODO: color gradient?
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;
       box.castShadow = true;

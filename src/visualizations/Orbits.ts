@@ -62,9 +62,10 @@ export class Orbits extends VisualizerBase {
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
     
-    const createVisualizationSphere = () => {
+    const createVisualizationSphere = (): Mesh => {
       const geometry = new SphereGeometry(10, 28, 16);
-      const material = new MeshPhongMaterial({color: '#2f88f5', transparent: true});
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#2f88f5';
+      const material = new MeshPhongMaterial({color, transparent: true});
       const sphere = new Mesh(geometry, material);
       
       const scale = Math.random() * (0.085 - 0.045) + 0.045;

@@ -46,9 +46,10 @@ export class Waveform extends VisualizerBase {
     const xIncrement = 0.93;
     let xPos = -25;
 
-    function createVisualizationCube(){
+    const createVisualizationCube = (): Mesh => {
       const boxGeometry = new BoxGeometry(0.4, 0.4, 0.4);
-      const boxMaterial = new MeshPhongMaterial({color: '#aaff00'});
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#aaff00';
+      const boxMaterial = new MeshPhongMaterial({color});
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;
       box.castShadow = true;

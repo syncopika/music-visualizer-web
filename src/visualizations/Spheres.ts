@@ -44,7 +44,8 @@ export class Spheres extends VisualizerBase {
     
     const createVisualizationSphere = (position: Vector3): Mesh => {
       const geometry = new SphereGeometry(10, 28, 16);
-      const material = new MeshPhongMaterial({color: '#2f88f5', transparent: true});
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#2f88f5';
+      const material = new MeshPhongMaterial({color, transparent: true});
       const sphere = new Mesh(geometry, material);
       
       sphere.position.copy(position.normalize());
