@@ -38,7 +38,7 @@ export class AudioManager {
     this.audioSource = this.audioContext.createBufferSource();
     
     const req = new XMLHttpRequest();
-    req.open("GET", url, true);
+    req.open('GET', url, true);
     req.responseType = 'arraybuffer';
     req.onload = () => {
       this.audioContext.decodeAudioData(req.response, (buffer: AudioBuffer) => {
@@ -71,7 +71,7 @@ export class AudioManager {
           }
         }
            
-        fileInput?.addEventListener("change", onFileChange, false);
+        fileInput?.addEventListener('change', onFileChange, false);
         fileInput?.click();
       }; 
     })();
@@ -102,10 +102,10 @@ export class AudioManager {
   }
   
   loadExample(){
-    const example = "/assets/080415pianobgm3popver-edit-steinway.wav";
+    const example = '/assets/080415pianobgm3popver-edit-steinway.wav';
     this.loadAudioFile(example);
     const filenameElement = document.getElementById('audioFileName');
-    if(filenameElement) filenameElement.textContent = "080415pianobgm3popver-edit-steinway.wav"; 
+    if(filenameElement) filenameElement.textContent = '080415pianobgm3popver-edit-steinway.wav'; 
   }
   
   play(){

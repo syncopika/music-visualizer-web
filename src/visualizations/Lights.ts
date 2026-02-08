@@ -48,6 +48,10 @@ export class Lights extends VisualizerBase {
       }
     });
     
+    if(this.visualization.children){
+      this.visualization = new Group();
+    }
+    
     const bufferLen = this.audioManager.analyser.frequencyBinCount;
     const numObjects = this.numObjects;
     

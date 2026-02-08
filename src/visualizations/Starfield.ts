@@ -231,6 +231,10 @@ export class Starfield extends VisualizerBase {
       }
     });
     
+    if(this.visualization.children){
+      this.visualization = new Group();
+    }
+    
     // load gltf model of star
     const starGltf = await this.loadModel('/assets/star.gltf');
     const starModel: Mesh = (starGltf as GLTFFile).scene.children[0] as Mesh;

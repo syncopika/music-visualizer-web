@@ -44,6 +44,10 @@ export class Ripples extends VisualizerBase {
       }
     });
     
+    if(this.visualization.children){
+      this.visualization = new Group();
+    }
+    
     // add new configurable param for toggling material opacity
     this.configurableParams.toggleMaterialOpacity = {isOn: true, parameterName: 'toggleMaterialOpacity'};
     

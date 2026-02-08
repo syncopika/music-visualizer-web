@@ -30,14 +30,14 @@ export class Waveform extends VisualizerBase {
       if(
         !c.type.toLowerCase().includes('camera') && 
         !c.type.toLowerCase().includes('light'))
-      {  
+      {
         this.scene.remove(c);
       }
     });
     
     const bufferLen = this.audioManager.analyser.frequencyBinCount;
 
-    const numObjects = this.numObjects;
+    const numObjects = this.numObjects; // TODO: not sure numObjects is accurate naming here?
     
     // if a small analyser.fftSize is chosen, frequencyBinCount will be small as well and
     // so Math.floor(bufferLen / numObjects) may end up being 0
