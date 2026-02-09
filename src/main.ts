@@ -37,10 +37,18 @@ let expectedStopTime: number | null = null; // should be record start time + dur
 
 const audioManager = new AudioManager();
 
+// visualizers that can be reset (because the placement of their objects is randomized)
+const resettableViz = [
+  'starfield',
+  'lights',
+  'ripples',
+];
+
 // html elements
 const importAudioBtn = document.getElementById('importAudio');
 const canvasContainer = document.getElementById('canvasContainer');
 const playBtn = document.getElementById('playVisualization');
+const resetBtn = document.getElementById('resetVisualization');
 const stopBtn = document.getElementById('stopVisualization');
 const vizSelect = document.getElementById('visualizerChoice');
 const toggleRecording = document.getElementById('toggleRecordingCheckbox');
@@ -167,6 +175,10 @@ function stopVisualization(){
     stopCanvasRecord();
     isRecording = false;
   }
+}
+
+function resetVisualization(){
+  if(visualizer) visualizer.init();
 }
 
 function makeBoolToggle(name: string, parameter: ConfigurableParameterToggle): HTMLElement {
@@ -344,6 +356,13 @@ function switchVisualizer(evt: Event){
   if(toggleWireframeCheckbox) (toggleWireframeCheckbox as HTMLInputElement).checked = false;
   
   if(visualizer) displayVisualizerConfigurableParams(visualizer);
+  
+  // disable reset button if selected visualizer is not one of resettableViz
+  if(resettableViz.includes(selected)){
+    (resetBtn as HTMLButtonElement).disabled = false;
+  }else{
+    (resetBtn as HTMLButtonElement).disabled = true;
+  }
 }
 
 // start
@@ -353,6 +372,12 @@ audioManager.loadExample();
 // setup some event listeners for buttons and inputs
 playBtn?.addEventListener('click', playVisualization);
 stopBtn?.addEventListener('click', stopVisualization);
+resetBtn?.addEventListener('click', () => {
+  // TODO: move this functionality under visualizer params? or disable button when selecting a non-resettable visualizer?
+  if(visualizer && resettableViz.includes(visualizer.name)){
+    resetVisualization();
+  }
+});
 vizSelect?.addEventListener('change', switchVisualizer);
 
 toggleRecording?.addEventListener(
@@ -425,8 +450,8 @@ importImageBtn?.addEventListener('click', () => {
         const file = files[0];
       
         if(!file.type.match(/image.*/)){
-            console.log("not a valid image");
-            return;
+          console.log("not a valid image");
+          return;
         }
         
         reader.onloadend = function(){

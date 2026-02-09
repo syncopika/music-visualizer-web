@@ -20,6 +20,7 @@ export class SceneManager {
   light: SpotLight;
   clock: Clock;
   texture: Texture | null;
+  selectedColor: string | null;
   
   constructor(container: HTMLDivElement){
     const scene = new Scene();
@@ -105,6 +106,7 @@ export class SceneManager {
   }
   
   changeVisualizationColor(color: string){
+    this.selectedColor = color;
     this.scene.children.forEach(child => {
       if(child.type === 'Group'){
         (child.children as Mesh[]).forEach(c => {

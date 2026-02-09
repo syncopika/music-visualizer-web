@@ -48,6 +48,10 @@ export class Lights extends VisualizerBase {
       }
     });
     
+    if(this.visualization.children){
+      this.visualization = new Group();
+    }
+    
     const bufferLen = this.audioManager.analyser.frequencyBinCount;
     const numObjects = this.numObjects;
     
@@ -55,9 +59,12 @@ export class Lights extends VisualizerBase {
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
     
-    const createVisualizationSphere = () => {
+    const createVisualizationSphere = (): Mesh => {
       const geometry = new SphereGeometry(10, 28, 16);
-      const material = new MeshStandardMaterial({color: '#2ff109', transparent: true});
+      
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#2ff109';
+      
+      const material = new MeshStandardMaterial({color, transparent: true});
       const sphere = new Mesh(geometry, material);
       
       sphere.position.set(

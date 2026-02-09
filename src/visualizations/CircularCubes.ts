@@ -47,9 +47,10 @@ export class CircularCubes extends VisualizerBase {
     const angle = 360 / numObjects;
     let currAngle = 0;
 
-    function createVisualizationCube(){
+    const createVisualizationCube = (): Mesh => {
       const boxGeometry = new BoxGeometry(0.4, 0.4, 0.4);
-      const boxMaterial = new MeshPhongMaterial({color: '#ffffdd'}); // TODO: color gradient?
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#ffffdd';
+      const boxMaterial = new MeshPhongMaterial({color}); // TODO: color gradient?
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;
       box.castShadow = true;

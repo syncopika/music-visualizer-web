@@ -45,7 +45,8 @@ export class SphericalCubes extends VisualizerBase {
     
     const createVisualizationCube = (position: Vector3): Mesh => {
       const boxGeometry = new BoxGeometry(0.4, 0.4, 0.4);
-      const boxMaterial = new MeshPhongMaterial({color: '#ffffdd'}); // TODO: color gradient?
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#ffffdd';
+      const boxMaterial = new MeshPhongMaterial({color}); // TODO: color gradient?
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;
       box.castShadow = true;

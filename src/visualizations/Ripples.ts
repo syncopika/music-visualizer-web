@@ -31,6 +31,13 @@ export class Ripples extends VisualizerBase {
     this.scaleTo = [];
     this.objectNonShaderMaterial = [];
     this.objectShaderMaterial = [];
+    
+    // add new configurable param for toggling material opacity
+    this.configurableParams.toggleMaterialOpacity = {isOn: true, parameterName: 'toggleMaterialOpacity'};
+    
+    // add new configurable param for toggling shader or non-shader material
+    // the shader material gives the closest 'ripple' effect atm so it's the default
+    this.configurableParams.rippleShaderMaterialOn = {isOn: true, parameterName: 'rippleShaderMaterialOn'};
   }
   
   init(){
@@ -44,12 +51,9 @@ export class Ripples extends VisualizerBase {
       }
     });
     
-    // add new configurable param for toggling material opacity
-    this.configurableParams.toggleMaterialOpacity = {isOn: true, parameterName: 'toggleMaterialOpacity'};
-    
-    // add new configurable param for toggling shader or non-shader material
-    // the shader material gives the closest 'ripple' effect atm so it's the default
-    this.configurableParams.rippleShaderMaterialOn = {isOn: true, parameterName: 'rippleShaderMaterialOn'};
+    if(this.visualization.children){
+      this.visualization = new Group();
+    }
     
     // fix z-position of light (otherwise the ripples will look black)
     // TODO: make sure light control slider for z axis is adjusted!
@@ -64,8 +68,8 @@ export class Ripples extends VisualizerBase {
     
     const createRipple = (position: Vector3): Mesh => {
       const geometry = new CircleGeometry(5, 32);
-      
-      const material = new MeshPhongMaterial({color: '#2f88f5', transparent: true});
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#2f88f5';
+      const material = new MeshPhongMaterial({color, transparent: true});
       this.objectNonShaderMaterial.push(material);
       
       const shaderMaterial = new ShaderMaterial({
