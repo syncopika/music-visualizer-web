@@ -16,6 +16,8 @@ export class SphericalCubes extends VisualizerBase {
   visualization: Group;
   lastTime: number;
   scaleTo: number[];
+  rotationAxis: Vector3;
+  initialPos: Vector3[];
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
@@ -23,6 +25,18 @@ export class SphericalCubes extends VisualizerBase {
     this.visualization = new Group();
     this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
+    this.initialPos = [];
+    
+    // generate a random axis to rotate about
+    // https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices
+    const rand1 = Math.random();
+    const rand2 = Math.random();
+    const theta = Math.acos((2*rand1) - 1);
+    const phi = 2 * Math.PI * rand2;
+    const x = Math.sin(phi) * Math.cos(theta);
+    const y = Math.sin(phi) * Math.sin(theta);
+    const z = Math.cos(phi);
+    this.rotationAxis = new Vector3(x, y, z);
   }
   
   init(){
@@ -67,7 +81,7 @@ export class SphericalCubes extends VisualizerBase {
       return new Vector3(verts[randVertIdx], verts[randVertIdx + 1], verts[randVertIdx + 2]);
     }
     
-    const skeletonGeometry = new SphereGeometry(20, 32, 16);
+    const skeletonGeometry = new SphereGeometry(12, 32, 16);
     
     for(let i = 0; i < bufferLen; i += increment){
       // TODO: get a random vertex but uniformly distributed?
@@ -83,6 +97,10 @@ export class SphericalCubes extends VisualizerBase {
     this.visualization.position.z = -25;
     this.visualization.position.y += 2.5;
     this.visualization.rotateX(Math.PI / 2);
+    
+    this.visualization.children.forEach(c => {
+      this.initialPos.push(c.position.clone());
+    });
   }
   
   update(){
@@ -128,15 +146,20 @@ export class SphericalCubes extends VisualizerBase {
           valToScaleTo = this.scaleTo[i];
         }
         
-        obj.scale.lerpVectors(
-          obj.scale, 
-          new Vector3(1, 1, valToScaleTo), // scale on cube's local z axis, which should correspond to the direction the cube is facing
+        const posToMoveTo = new Vector3();
+        posToMoveTo
+          .copy(this.initialPos[i])
+          .multiplyScalar(Math.max(1, valToScaleTo));
+        
+        obj.position.lerpVectors(
+          obj.position,
+          posToMoveTo,
           lerpAmount,
         );
       }
     }
     
-    this.visualization.rotateY(Math.PI / 2500);
+    this.visualization.rotateOnAxis(this.rotationAxis, Math.PI / 2500);
     
     this.doPostProcessing();
   }
