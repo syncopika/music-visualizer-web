@@ -1,4 +1,4 @@
-import { VisualizerBase } from './VisualizerBase';
+import { VisualizerBase, ConfigurableParameterRange } from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
@@ -15,6 +15,8 @@ export class CircularWaveform extends VisualizerBase {
   visualization: Group;
   lastTime: number;
   moveTo: number[];
+  rotationAxis: Vector3;
+  radius: number;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
@@ -22,6 +24,21 @@ export class CircularWaveform extends VisualizerBase {
     this.visualization = new Group();
     this.lastTime = this.clock.getElapsedTime();
     this.moveTo = [];
+    this.radius = 15;
+    
+    // add new configurable parameter for changing radius
+    this.configurableParams.radius = {value: this.radius, min: 5.0, max: 20.0, step: 0.5, parameterName: 'radius'};
+
+    // generate a random axis to rotate about
+    // https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices
+    const rand1 = Math.random();
+    const rand2 = Math.random();
+    const theta = Math.acos((2*rand1) - 1);
+    const phi = 2 * Math.PI * rand2;
+    const x = Math.sin(phi) * Math.cos(theta);
+    const y = Math.sin(phi) * Math.sin(theta);
+    const z = Math.cos(phi);
+    this.rotationAxis = new Vector3(x, y, z);
   }
   
   init(){
@@ -37,19 +54,16 @@ export class CircularWaveform extends VisualizerBase {
     
     const bufferLen = this.audioManager.analyser.frequencyBinCount;
 
-    const numObjects = this.numObjects; // TODO: not sure numObjects is accurate naming here?
+    const numObjects = this.numObjects;
     
     // arrange cubes in a circle
-    const radius = 15;
+    const radius = this.radius;
     const angle = 360 / numObjects;
     let currAngle = 0;
     
     // if a small analyser.fftSize is chosen, frequencyBinCount will be small as well and
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
-    
-    const xIncrement = 0.93;
-    let xPos = -25;
 
     // TODO: have sphere be an option also?
     const createVisualizationCube = (): Mesh => {
@@ -73,13 +87,10 @@ export class CircularWaveform extends VisualizerBase {
       currAngle += angle;
       
       this.visualization.add(newCube);
-
-      xPos += xIncrement;
     }
     
     this.scene.add(this.visualization);
     this.visualization.position.z = -15;
-    this.visualization.position.y -= 0.5;
   }
   
   update(){
@@ -87,13 +98,28 @@ export class CircularWaveform extends VisualizerBase {
     const buffer = this.audioManager.buffer;
     const numObjects = this.visualization.children.length;
     const increment = Math.floor(bufferLength / numObjects);
+    const angle = 360 / numObjects;
+    const radiusSliderVal = (this.configurableParams.radius as ConfigurableParameterRange).value;
+    
+    if(radiusSliderVal !== this.radius){
+      // update radius of visualizer
+      let currAngle = 0;
+      const newRadius = radiusSliderVal;
+      for(let i = 0; i < numObjects; i++){
+        const cube = this.visualization.children[i];
+        const rad = currAngle * (Math.PI / 180);
+        cube.position.x = newRadius * Math.cos(rad);
+        cube.position.z = newRadius * Math.sin(rad);
+        currAngle += angle;
+      }
+    }
     
     this.audioManager.analyser.getByteTimeDomainData(buffer);
     
     const moveToIsEmpty = this.moveTo.length === 0;
     const timeInterval = 0.04; // messing with this value can produce some interesting results!
     const elapsedTime = this.clock.getElapsedTime();
-    const factor = 8;
+    const factor = 5;
     
     if(elapsedTime - this.lastTime >= timeInterval){
       this.lastTime = elapsedTime;
@@ -101,7 +127,6 @@ export class CircularWaveform extends VisualizerBase {
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
         const y = value * factor;
-        //y = y < this.visualization.children[i].position.y ? 0 : y;
 
         if(moveToIsEmpty){
           this.moveTo.push(y);
@@ -115,7 +140,6 @@ export class CircularWaveform extends VisualizerBase {
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
         const y = value * factor;
-        //y = y < this.visualization.children[i].position.y ? 0 : y;
         const obj = this.visualization.children[i];
         
         let valToMoveTo;
@@ -137,15 +161,8 @@ export class CircularWaveform extends VisualizerBase {
       }
     }
     
-    /*
-    for(let i = 0; i < numObjects; i++){
-      const value = buffer[i * increment] / 255; //128.0; // why 128?
-      const y = value * 5; // multiply by maximum height
-      const obj = this.visualization.children[i];
-      obj.position.lerp(new Vector3(obj.position.x, y, obj.position.z), 0.5);
-    }*/
-    
-    this.visualization.rotateY(Math.PI / 1000);
+    this.visualization.rotateY(Math.PI / 2000);
+    //this.visualization.rotateOnAxis(this.rotationAxis, Math.PI / 2000);
     
     this.doPostProcessing();
   }
