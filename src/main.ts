@@ -13,6 +13,7 @@ import {
   ConfigurableParameterToggle,
 } from './visualizations/VisualizerBase';
 import { Waveform } from './visualizations/Waveform';
+import { CircularWaveform } from './visualizations/CircularWaveform';
 import { Starfield } from './visualizations/Starfield';
 import { Pixels } from './visualizations/Pixels';
 import { CircularCubes } from './visualizations/CircularCubes';
@@ -287,6 +288,10 @@ function switchVisualizer(evt: Event){
   switch(selected){
     case 'waveform':
       visualizer = new Waveform('waveform', sceneManager, audioManager, 50);
+      visualizer.init();
+      break;
+    case 'circular-waveform':
+      visualizer = new CircularWaveform('circular-waveform', sceneManager, audioManager, 80);
       visualizer.init();
       break;
     case 'circular-cubes':
