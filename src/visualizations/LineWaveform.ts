@@ -4,13 +4,14 @@ import { AudioManager } from '../AudioManager';
 
 import {
   Mesh,
-  BoxGeometry,
-  MeshPhongMaterial,
+  LineBasicMaterial,
+  Line,
+  BufferGeometry,
   Vector3,
   Group,
 } from 'three';
 
-export class CircularWaveform extends VisualizerBase {
+export class LineWaveform extends VisualizerBase {
   numObjects: number;
   visualization: Group;
   lastTime: number;
@@ -56,7 +57,7 @@ export class CircularWaveform extends VisualizerBase {
 
     const numObjects = this.numObjects;
     
-    // arrange cubes in a circle
+    // arrange line points in a circle
     const radius = this.radius;
     const angle = 360 / numObjects;
     let currAngle = 0;
@@ -65,38 +66,37 @@ export class CircularWaveform extends VisualizerBase {
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
 
-    // TODO: have sphere be an option also?
-    const createVisualizationCube = (): Mesh => {
-      const boxGeometry = new BoxGeometry(0.2, 0.2, 0.2);
-      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#aaff00';
-      const boxMaterial = new MeshPhongMaterial({color});
-      const box = new Mesh(boxGeometry, boxMaterial);
-      box.receiveShadow = true;
-      box.castShadow = true;
-      return box;
+    // TODO: use lines (LineBasicMaterial, BufferGeometry.setFromPoints), not a cube
+    // see https://threejs.org/examples/?q=line#webgl_interactive_lines
+    // https://threejs.org/docs/#Line
+    const points = [];
+    for(let i = 0; i < bufferLen; i += increment){
+      const rad = currAngle * (Math.PI / 180);
+      const newPoint = new Vector3(radius * Math.cos(rad), radius * Math.sin(rad), 0);
+      points.push(newPoint);
+      currAngle += angle;
     }
     
-    for(let i = 0; i < bufferLen; i += increment){
-      const newCube = createVisualizationCube();
-
-      const rad = currAngle * (Math.PI / 180);
-      newCube.rotateY(-rad);
-      newCube.position.x = radius * Math.cos(rad);
-      newCube.position.z = radius * Math.sin(rad);
-      
-      currAngle += angle;
-      
-      this.visualization.add(newCube);
-    }
+    const material = new LineBasicMaterial({color: 0x00ff00}); // TODO: use color based on configurable param
+    const geometry = new BufferGeometry().setFromPoints(points);
+    const line = new Line(geometry, material);
+    //console.log(line);
+    
+    line.frustumCulled = false;
+    line.geometry.computeBoundingSphere();
+    
+    this.visualization = line;
     
     this.scene.add(this.visualization);
-    this.visualization.position.z = -15;
+    this.visualization.position.z = -25;
+    
+    //console.log(this.scene);
   }
   
   update(){
     const bufferLength = this.audioManager.analyser.frequencyBinCount;
     const buffer = this.audioManager.buffer;
-    const numObjects = this.visualization.children.length;
+    const numObjects = this.numObjects; // num vertices in this case
     const increment = Math.floor(bufferLength / numObjects);
     const angle = 360 / numObjects;
     const radiusSliderVal = (this.configurableParams.radius as ConfigurableParameterRange).value;
@@ -105,13 +105,17 @@ export class CircularWaveform extends VisualizerBase {
       // update radius of visualizer
       let currAngle = 0;
       const newRadius = radiusSliderVal;
+      const visualizerVertexPositions = this.visualization.geometry.attributes.position;
       for(let i = 0; i < numObjects; i++){
-        const cube = this.visualization.children[i];
         const rad = currAngle * (Math.PI / 180);
-        cube.position.x = newRadius * Math.cos(rad);
-        cube.position.z = newRadius * Math.sin(rad);
+        const x = newRadius * Math.cos(rad);
+        const y = newRadius * Math.sin(rad);
+        const z = visualizerVertexPositions.getZ(i);
+        visualizerVertexPositions.setXYZ(i, x, y, z);
         currAngle += angle;
       }
+      visualizerVertexPositions.needsUpdate = true;
+      console.log('updated radius');
       this.radius = newRadius;
     }
     
@@ -138,10 +142,12 @@ export class CircularWaveform extends VisualizerBase {
     }else{
       const lerpAmount = (elapsedTime - this.lastTime) / timeInterval;
       
+      // TODO: move to should be in the forward direction of the point (outward from the circle -> vector from center of circle to point)
+      const visualizerVertexPositions = this.visualization.geometry.attributes.position;
+      
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
         const y = value * factor;
-        const obj = this.visualization.children[i];
         
         let valToMoveTo;
         
@@ -152,13 +158,20 @@ export class CircularWaveform extends VisualizerBase {
           valToMoveTo = this.moveTo[i];
         }
         
-        const newPos = new Vector3(obj.position.x, valToMoveTo, obj.position.z);
+        const currX = visualizerVertexPositions.getX(i);
+        const currY = visualizerVertexPositions.getY(i);
+        const currZ = visualizerVertexPositions.getZ(i);
+        const currPos = new Vector3(currX, currY, currZ); 
+        const newPos = new Vector3(currX, currY, valToMoveTo);
       
-        obj.position.lerpVectors(
-          obj.position, 
-          newPos, 
+        currPos.lerpVectors(
+          currPos,
+          newPos,
           lerpAmount,
         );
+        
+        visualizerVertexPositions.setXYZ(i, currPos.x, currPos.y, currPos.z);
+        visualizerVertexPositions.needsUpdate = true;
       }
     }
     
