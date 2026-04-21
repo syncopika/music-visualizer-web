@@ -3,17 +3,16 @@ import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
 import {
-  Mesh,
   LineBasicMaterial,
   Line,
   BufferGeometry,
   Vector3,
-  Group,
+  Color,
 } from 'three';
 
 export class LineWaveform extends VisualizerBase {
   numObjects: number;
-  visualization: Group;
+  visualization: Line;
   lastTime: number;
   moveTo: number[];
   rotationAxis: Vector3;
@@ -22,7 +21,7 @@ export class LineWaveform extends VisualizerBase {
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
     this.numObjects = size;
-    this.visualization = new Group();
+    this.visualization = new Line();
     this.lastTime = this.clock.getElapsedTime();
     this.moveTo = [];
     this.radius = 15;
@@ -77,10 +76,9 @@ export class LineWaveform extends VisualizerBase {
       currAngle += angle;
     }
     
-    const material = new LineBasicMaterial({color: 0x00ff00}); // TODO: use color based on configurable param
+    const material = new LineBasicMaterial({color: 0x00ff00});
     const geometry = new BufferGeometry().setFromPoints(points);
     const line = new Line(geometry, material);
-    //console.log(line);
     
     line.frustumCulled = false;
     line.geometry.computeBoundingSphere();
@@ -89,8 +87,10 @@ export class LineWaveform extends VisualizerBase {
     
     this.scene.add(this.visualization);
     this.visualization.position.z = -25;
-    
-    //console.log(this.scene);
+  }
+  
+  changeVisualizationColor(newColor: string){
+    (this.visualization.material as LineBasicMaterial).color = new Color(newColor);
   }
   
   update(){
@@ -142,7 +142,7 @@ export class LineWaveform extends VisualizerBase {
     }else{
       const lerpAmount = (elapsedTime - this.lastTime) / timeInterval;
       
-      // TODO: move to should be in the forward direction of the point (outward from the circle -> vector from center of circle to point)
+      // TODO: move to should be in the forward direction of the point? (outward from the circle -> vector from center of circle to point)
       const visualizerVertexPositions = this.visualization.geometry.attributes.position;
       
       for(let i = 0; i < numObjects; i++){
@@ -164,11 +164,7 @@ export class LineWaveform extends VisualizerBase {
         const currPos = new Vector3(currX, currY, currZ); 
         const newPos = new Vector3(currX, currY, valToMoveTo);
       
-        currPos.lerpVectors(
-          currPos,
-          newPos,
-          lerpAmount,
-        );
+        currPos.lerpVectors(currPos, newPos, lerpAmount);
         
         visualizerVertexPositions.setXYZ(i, currPos.x, currPos.y, currPos.z);
         visualizerVertexPositions.needsUpdate = true;

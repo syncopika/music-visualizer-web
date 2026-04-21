@@ -418,6 +418,10 @@ bgColorPicker?.addEventListener('change', (evt: Event) => {
 vizColorPicker?.addEventListener('change', (evt: Event) => {
   const target = evt.target as HTMLInputElement;
   if(sceneManager && target) sceneManager.changeVisualizationColor(target.value);
+  
+  // some visualizers are made up of meshes that may not use MeshStandardMaterial
+  // or have some other setup such that we can't rely on sceneManager.changeVisualizationColor
+  if(visualizer) visualizer.changeVisualizationColor(target.value);
 });
 
 fftSizeDropdown?.addEventListener('change', (evt: Event) => {
