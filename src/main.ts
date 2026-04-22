@@ -296,7 +296,7 @@ function switchVisualizer(evt: Event){
       visualizer.init();
       break;
     case 'line-waveform':
-      visualizer = new LineWaveform('line-waveform', sceneManager, audioManager, 80);
+      visualizer = new LineWaveform('line-waveform', sceneManager, audioManager, 60); // pass a value n such that 360 % n == 0
       visualizer.init();
       break;
     case 'circular-cubes':

@@ -4,7 +4,7 @@ import { AudioManager } from '../AudioManager';
 
 import {
   LineBasicMaterial,
-  Line,
+  LineLoop,
   BufferGeometry,
   Vector3,
   Color,
@@ -12,19 +12,21 @@ import {
 
 export class LineWaveform extends VisualizerBase {
   numObjects: number;
-  visualization: Line;
+  visualization: LineLoop;
   lastTime: number;
   moveTo: number[];
   rotationAxis: Vector3;
   radius: number;
+  points: Vector3[];
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
     this.numObjects = size;
-    this.visualization = new Line();
+    this.visualization = new LineLoop();
     this.lastTime = this.clock.getElapsedTime();
     this.moveTo = [];
     this.radius = 15;
+    this.points = [];
     
     // add new configurable parameter for changing radius
     this.configurableParams.radius = {value: this.radius, min: 5.0, max: 20.0, step: 0.5, parameterName: 'radius'};
@@ -56,32 +58,27 @@ export class LineWaveform extends VisualizerBase {
 
     const numObjects = this.numObjects;
     
-    // arrange line points in a circle
-    const radius = this.radius;
-    const angle = 360 / numObjects;
-    let currAngle = 0;
-    
     // if a small analyser.fftSize is chosen, frequencyBinCount will be small as well and
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
 
-    // TODO: use lines (LineBasicMaterial, BufferGeometry.setFromPoints), not a cube
-    // see https://threejs.org/examples/?q=line#webgl_interactive_lines
-    // https://threejs.org/docs/#Line
-    const points = [];
+    // arrange line points in a circle
+    const radius = this.radius;
+    const angle = 360 / numObjects;
+    let currAngle = 0;
+
     for(let i = 0; i < bufferLen; i += increment){
       const rad = currAngle * (Math.PI / 180);
       const newPoint = new Vector3(radius * Math.cos(rad), radius * Math.sin(rad), 0);
-      points.push(newPoint);
+      this.points.push(newPoint);
       currAngle += angle;
     }
     
     const material = new LineBasicMaterial({color: 0x00ff00});
-    const geometry = new BufferGeometry().setFromPoints(points);
-    const line = new Line(geometry, material);
+    const geometry = new BufferGeometry().setFromPoints(this.points);
     
-    line.frustumCulled = false;
-    line.geometry.computeBoundingSphere();
+    // since we're interested in creating a circle, we can use LineLoop instead of Line
+    const line = new LineLoop(geometry, material);
     
     this.visualization = line;
     
@@ -106,7 +103,7 @@ export class LineWaveform extends VisualizerBase {
       let currAngle = 0;
       const newRadius = radiusSliderVal;
       const visualizerVertexPositions = this.visualization.geometry.attributes.position;
-      for(let i = 0; i < numObjects; i++){
+      for(let i = 0; i < this.points.length; i++){
         const rad = currAngle * (Math.PI / 180);
         const x = newRadius * Math.cos(rad);
         const y = newRadius * Math.sin(rad);
@@ -129,7 +126,7 @@ export class LineWaveform extends VisualizerBase {
     if(elapsedTime - this.lastTime >= timeInterval){
       this.lastTime = elapsedTime;
       
-      for(let i = 0; i < numObjects; i++){
+      for(let i = 0; i < this.points.length; i++){
         const value = buffer[i * increment] / 255;
         const y = value * factor;
 
@@ -145,7 +142,7 @@ export class LineWaveform extends VisualizerBase {
       // TODO: move to should be in the forward direction of the point? (outward from the circle -> vector from center of circle to point)
       const visualizerVertexPositions = this.visualization.geometry.attributes.position;
       
-      for(let i = 0; i < numObjects; i++){
+      for(let i = 0; i < this.points.length; i++){
         const value = buffer[i * increment] / 255;
         const y = value * factor;
         
@@ -171,8 +168,8 @@ export class LineWaveform extends VisualizerBase {
       }
     }
     
-    this.visualization.rotateY(Math.PI / 2000);
-    //this.visualization.rotateOnAxis(this.rotationAxis, Math.PI / 2000);
+    //this.visualization.rotateY(Math.PI / 2000);
+    this.visualization.rotateOnAxis(this.rotationAxis, Math.PI / 2000);
     
     this.doPostProcessing();
   }
