@@ -14,6 +14,7 @@ import {
 } from './visualizations/VisualizerBase';
 import { Waveform } from './visualizations/Waveform';
 import { CircularWaveform } from './visualizations/CircularWaveform';
+import { LineWaveform } from './visualizations/LineWaveform';
 import { Starfield } from './visualizations/Starfield';
 import { Pixels } from './visualizations/Pixels';
 import { CircularCubes } from './visualizations/CircularCubes';
@@ -294,6 +295,10 @@ function switchVisualizer(evt: Event){
       visualizer = new CircularWaveform('circular-waveform', sceneManager, audioManager, 80);
       visualizer.init();
       break;
+    case 'line-waveform':
+      visualizer = new LineWaveform('line-waveform', sceneManager, audioManager, 60); // pass a value n such that 360 % n == 0
+      visualizer.init();
+      break;
     case 'circular-cubes':
       visualizer = new CircularCubes('circular-cubes', sceneManager, audioManager, 50);
       visualizer.init();
@@ -413,6 +418,10 @@ bgColorPicker?.addEventListener('change', (evt: Event) => {
 vizColorPicker?.addEventListener('change', (evt: Event) => {
   const target = evt.target as HTMLInputElement;
   if(sceneManager && target) sceneManager.changeVisualizationColor(target.value);
+  
+  // some visualizers are made up of meshes that may not use MeshStandardMaterial
+  // or have some other setup such that we can't rely on sceneManager.changeVisualizationColor
+  if(visualizer) visualizer.changeVisualizationColor(target.value);
 });
 
 fftSizeDropdown?.addEventListener('change', (evt: Event) => {

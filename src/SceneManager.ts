@@ -114,6 +114,7 @@ export class SceneManager {
             (c.material as MeshStandardMaterial).color = new Color(color);
           }else if(c.children){
             // TODO: recursively apply new color to children if Group is found
+            // this would assume all materials to be MeshStandardMaterial though, which may not be the case :/
             (c.children as Mesh[]).forEach(c2 => {
               (c2.material as MeshStandardMaterial).color = new Color(color);
             });

@@ -3,28 +3,30 @@ import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
 import {
-  Mesh,
-  BoxGeometry,
-  MeshPhongMaterial,
+  LineBasicMaterial,
+  LineLoop,
+  BufferGeometry,
   Vector3,
-  Group,
+  Color,
 } from 'three';
 
-export class CircularWaveform extends VisualizerBase {
+export class LineWaveform extends VisualizerBase {
   numObjects: number;
-  visualization: Group;
+  visualization: LineLoop;
   lastTime: number;
   moveTo: number[];
   rotationAxis: Vector3;
   radius: number;
+  points: Vector3[];
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
     this.numObjects = size;
-    this.visualization = new Group();
+    this.visualization = new LineLoop();
     this.lastTime = this.clock.getElapsedTime();
     this.moveTo = [];
     this.radius = 15;
+    this.points = [];
     
     // add new configurable parameter for changing radius
     this.configurableParams.radius = {value: this.radius, min: 5.0, max: 20.0, step: 0.5, parameterName: 'radius'};
@@ -56,47 +58,42 @@ export class CircularWaveform extends VisualizerBase {
 
     const numObjects = this.numObjects;
     
-    // arrange cubes in a circle
-    const radius = this.radius;
-    const angle = 360 / numObjects;
-    let currAngle = 0;
-    
     // if a small analyser.fftSize is chosen, frequencyBinCount will be small as well and
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
 
-    // TODO: have sphere be an option also?
-    const createVisualizationCube = (): Mesh => {
-      const boxGeometry = new BoxGeometry(0.2, 0.2, 0.2);
-      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#aaff00';
-      const boxMaterial = new MeshPhongMaterial({color});
-      const box = new Mesh(boxGeometry, boxMaterial);
-      box.receiveShadow = true;
-      box.castShadow = true;
-      return box;
+    // arrange line points in a circle
+    const radius = this.radius;
+    const angle = 360 / numObjects;
+    let currAngle = 0;
+
+    for(let i = 0; i < bufferLen; i += increment){
+      const rad = currAngle * (Math.PI / 180);
+      const newPoint = new Vector3(radius * Math.cos(rad), radius * Math.sin(rad), 0);
+      this.points.push(newPoint);
+      currAngle += angle;
     }
     
-    for(let i = 0; i < bufferLen; i += increment){
-      const newCube = createVisualizationCube();
-
-      const rad = currAngle * (Math.PI / 180);
-      newCube.rotateY(-rad);
-      newCube.position.x = radius * Math.cos(rad);
-      newCube.position.z = radius * Math.sin(rad);
-      
-      currAngle += angle;
-      
-      this.visualization.add(newCube);
-    }
+    const material = new LineBasicMaterial({color: 0x00ff00});
+    const geometry = new BufferGeometry().setFromPoints(this.points);
+    
+    // since we're interested in creating a circle, we can use LineLoop instead of Line
+    const line = new LineLoop(geometry, material);
+    
+    this.visualization = line;
     
     this.scene.add(this.visualization);
-    this.visualization.position.z = -15;
+    this.visualization.position.z = -25;
+  }
+  
+  changeVisualizationColor(newColor: string){
+    (this.visualization.material as LineBasicMaterial).color = new Color(newColor);
   }
   
   update(){
     const bufferLength = this.audioManager.analyser.frequencyBinCount;
     const buffer = this.audioManager.buffer;
-    const numObjects = this.visualization.children.length;
+    const numObjects = this.numObjects; // num vertices in this case
     const increment = Math.floor(bufferLength / numObjects);
     const angle = 360 / numObjects;
     const radiusSliderVal = (this.configurableParams.radius as ConfigurableParameterRange).value;
@@ -105,13 +102,17 @@ export class CircularWaveform extends VisualizerBase {
       // update radius of visualizer
       let currAngle = 0;
       const newRadius = radiusSliderVal;
-      for(let i = 0; i < numObjects; i++){
-        const cube = this.visualization.children[i];
+      const visualizerVertexPositions = this.visualization.geometry.attributes.position;
+      for(let i = 0; i < this.points.length; i++){
         const rad = currAngle * (Math.PI / 180);
-        cube.position.x = newRadius * Math.cos(rad);
-        cube.position.z = newRadius * Math.sin(rad);
+        const x = newRadius * Math.cos(rad);
+        const y = newRadius * Math.sin(rad);
+        const z = visualizerVertexPositions.getZ(i);
+        visualizerVertexPositions.setXYZ(i, x, y, z);
         currAngle += angle;
       }
+      visualizerVertexPositions.needsUpdate = true;
+      console.log('updated radius');
       this.radius = newRadius;
     }
     
@@ -120,12 +121,12 @@ export class CircularWaveform extends VisualizerBase {
     const moveToIsEmpty = this.moveTo.length === 0;
     const timeInterval = 0.04; // messing with this value can produce some interesting results!
     const elapsedTime = this.clock.getElapsedTime();
-    const factor = 5;
+    const factor = 8;
     
     if(elapsedTime - this.lastTime >= timeInterval){
       this.lastTime = elapsedTime;
       
-      for(let i = 0; i < numObjects; i++){
+      for(let i = 0; i < this.points.length; i++){
         const value = buffer[i * increment] / 255;
         const y = value * factor;
 
@@ -138,10 +139,11 @@ export class CircularWaveform extends VisualizerBase {
     }else{
       const lerpAmount = (elapsedTime - this.lastTime) / timeInterval;
       
-      for(let i = 0; i < numObjects; i++){
+      const visualizerVertexPositions = this.visualization.geometry.attributes.position;
+      
+      for(let i = 0; i < this.points.length; i++){
         const value = buffer[i * increment] / 255;
         const y = value * factor;
-        const obj = this.visualization.children[i];
         
         let valToMoveTo;
         
@@ -152,18 +154,21 @@ export class CircularWaveform extends VisualizerBase {
           valToMoveTo = this.moveTo[i];
         }
         
-        const newPos = new Vector3(obj.position.x, valToMoveTo, obj.position.z);
-      
-        obj.position.lerpVectors(
-          obj.position, 
-          newPos, 
-          lerpAmount,
-        );
+        const currX = visualizerVertexPositions.getX(i);
+        const currY = visualizerVertexPositions.getY(i);
+        const currZ = visualizerVertexPositions.getZ(i);
+        const currPos = new Vector3(currX, currY, currZ); 
+        const newPos = new Vector3(currX, currY, valToMoveTo); // TODO: explore setting valToMoveTo for different axes?
+        
+        currPos.lerpVectors(currPos, newPos, lerpAmount);
+        
+        visualizerVertexPositions.setXYZ(i, currPos.x, currPos.y, currPos.z);
+        visualizerVertexPositions.needsUpdate = true;
       }
     }
     
-    this.visualization.rotateY(Math.PI / 2000);
-    //this.visualization.rotateOnAxis(this.rotationAxis, Math.PI / 2000);
+    //this.visualization.rotateY(Math.PI / 2000);
+    this.visualization.rotateOnAxis(this.rotationAxis, Math.PI / 2000);
     
     this.doPostProcessing();
   }

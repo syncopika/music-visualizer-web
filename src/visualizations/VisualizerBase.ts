@@ -168,4 +168,9 @@ export class VisualizerBase {
     // TODO: get some info about the scene
     console.log(`some info about the ${this.name} visualizer.`);
   }
+  
+  changeVisualizationColor(_color: string){
+    // change this visualizer's color - we can add custom logic here in
+    // a subclass of VisualizerBase to handle color updates in a bespoke way
+  }
 }
