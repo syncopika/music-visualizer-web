@@ -121,7 +121,7 @@ export class LineWaveform extends VisualizerBase {
     const moveToIsEmpty = this.moveTo.length === 0;
     const timeInterval = 0.04; // messing with this value can produce some interesting results!
     const elapsedTime = this.clock.getElapsedTime();
-    const factor = 5;
+    const factor = 8;
     
     if(elapsedTime - this.lastTime >= timeInterval){
       this.lastTime = elapsedTime;
@@ -139,7 +139,6 @@ export class LineWaveform extends VisualizerBase {
     }else{
       const lerpAmount = (elapsedTime - this.lastTime) / timeInterval;
       
-      // TODO: move to should be in the forward direction of the point? (outward from the circle -> vector from center of circle to point)
       const visualizerVertexPositions = this.visualization.geometry.attributes.position;
       
       for(let i = 0; i < this.points.length; i++){
@@ -159,8 +158,8 @@ export class LineWaveform extends VisualizerBase {
         const currY = visualizerVertexPositions.getY(i);
         const currZ = visualizerVertexPositions.getZ(i);
         const currPos = new Vector3(currX, currY, currZ); 
-        const newPos = new Vector3(currX, currY, valToMoveTo);
-      
+        const newPos = new Vector3(currX, currY, valToMoveTo); // TODO: explore setting valToMoveTo for different axes?
+        
         currPos.lerpVectors(currPos, newPos, lerpAmount);
         
         visualizerVertexPositions.setXYZ(i, currPos.x, currPos.y, currPos.z);
