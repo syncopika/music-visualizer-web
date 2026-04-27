@@ -1,4 +1,8 @@
-import { VisualizerBase, ConfigurableParameterRange } from './VisualizerBase';
+import {
+  VisualizerBase,
+  ConfigurableParameterRange,
+  ConfigurableParameterToggle,
+} from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
@@ -30,6 +34,10 @@ export class LineWaveform extends VisualizerBase {
     
     // add new configurable parameter for changing radius
     this.configurableParams.radius = {value: this.radius, min: 5.0, max: 20.0, step: 0.5, parameterName: 'radius'};
+
+    // add new configurable parameter for direction each vertex should be moved to for the visualization
+    // in x-y plane or along z-axis
+    this.configurableParams.moveVerticesAlongXYPlane = {isOn: false, parameterName: 'moveVerticesAlongXYPlane'};
 
     // generate a random axis to rotate about
     // https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices
@@ -141,6 +149,7 @@ export class LineWaveform extends VisualizerBase {
       
       const visualizerVertexPositions = this.visualization.geometry.attributes.position;
       
+      let currAngle = 0;
       for(let i = 0; i < this.points.length; i++){
         const value = buffer[i * increment] / 255;
         const y = value * factor;
@@ -157,13 +166,27 @@ export class LineWaveform extends VisualizerBase {
         const currX = visualizerVertexPositions.getX(i);
         const currY = visualizerVertexPositions.getY(i);
         const currZ = visualizerVertexPositions.getZ(i);
-        const currPos = new Vector3(currX, currY, currZ); 
-        const newPos = new Vector3(currX, currY, valToMoveTo); // TODO: explore setting valToMoveTo for different axes?
+        
+        const currPos = new Vector3(currX, currY, currZ);
+        
+        let newPos;
+        const rad = currAngle * (Math.PI / 180);
+        if((this.configurableParams.moveVerticesAlongXYPlane as ConfigurableParameterToggle).isOn){
+          const newX = (this.radius + valToMoveTo) * Math.cos(rad);
+          const newY = (this.radius + valToMoveTo) * Math.sin(rad);
+          newPos = new Vector3(newX, newY, currZ);
+        }else{
+          const newX = this.radius * Math.cos(rad);
+          const newY = this.radius * Math.sin(rad);
+          newPos = new Vector3(newX, newY, valToMoveTo);
+        }
         
         currPos.lerpVectors(currPos, newPos, lerpAmount);
         
         visualizerVertexPositions.setXYZ(i, currPos.x, currPos.y, currPos.z);
         visualizerVertexPositions.needsUpdate = true;
+        
+        currAngle += angle;
       }
     }
     
