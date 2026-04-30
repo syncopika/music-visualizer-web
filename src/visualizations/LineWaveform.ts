@@ -39,6 +39,9 @@ export class LineWaveform extends VisualizerBase {
     // in x-y plane or along z-axis
     this.configurableParams.moveVerticesAlongXYPlane = {isOn: false, parameterName: 'moveVerticesAlongXYPlane'};
 
+    // toggle for line opacity
+    this.configurableParams.opacityOn = {isOn: false, parameterName: 'lineOpacity'};
+
     // generate a random axis to rotate about
     // https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices
     const rand1 = Math.random();
@@ -49,6 +52,10 @@ export class LineWaveform extends VisualizerBase {
     const y = Math.sin(phi) * Math.sin(theta);
     const z = Math.cos(phi);
     this.rotationAxis = new Vector3(x, y, z);
+  }
+  
+  lerp(from: number, to: number, amount: number): number{
+    return to + (from - to) * amount;
   }
   
   init(){
@@ -82,7 +89,8 @@ export class LineWaveform extends VisualizerBase {
       currAngle += angle;
     }
     
-    const material = new LineBasicMaterial({color: 0x00ff00});
+    const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : 0x00ff00;
+    const material = new LineBasicMaterial({color, transparent: true, opacity: 1.0});
     const geometry = new BufferGeometry().setFromPoints(this.points);
     
     // since we're interested in creating a circle, we can use LineLoop instead of Line
@@ -185,6 +193,16 @@ export class LineWaveform extends VisualizerBase {
         
         visualizerVertexPositions.setXYZ(i, currPos.x, currPos.y, currPos.z);
         visualizerVertexPositions.needsUpdate = true;
+        
+        const mat = (this.visualization.material as LineBasicMaterial);
+        //console.log(valToMoveTo);
+        
+        // ~4 seems to be a pretty good number; the range of valToMoveTo seems pretty consistent interestingly, something to investigate??
+        if((this.configurableParams.opacityOn as ConfigurableParameterToggle).isOn){
+          mat.opacity = this.lerp(mat.opacity, (valToMoveTo - 3.8), lerpAmount);
+        }else{
+          mat.opacity = 1.0;
+        }
         
         currAngle += angle;
       }
