@@ -44,6 +44,7 @@ const resettableViz = [
   'starfield',
   'lights',
   'ripples',
+  'line-waveform',
 ];
 
 // html elements

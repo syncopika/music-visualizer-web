@@ -8,6 +8,7 @@ import { AudioManager } from '../AudioManager';
 
 import {
   LineBasicMaterial,
+  LineDashedMaterial,
   LineLoop,
   BufferGeometry,
   Vector3,
@@ -21,7 +22,10 @@ export class LineWaveform extends VisualizerBase {
   moveTo: number[];
   rotationAxis: Vector3;
   radius: number;
+  rotationSpeed: number;
   points: Vector3[];
+  lineMaterial: LineBasicMaterial;
+  dashLineMaterial: LineDashedMaterial;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
@@ -30,10 +34,22 @@ export class LineWaveform extends VisualizerBase {
     this.lastTime = this.clock.getElapsedTime();
     this.moveTo = [];
     this.radius = 15;
+    this.rotationSpeed = 0.0;
     this.points = [];
+    
+    const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : 0x00ff00;
+    
+    const material = new LineBasicMaterial({color, transparent: true, opacity: 1.0});
+    this.lineMaterial = material;
+    
+    const dashedLineMaterial = new LineDashedMaterial({color, transparent: true, opacity: 1.0, scale: 1, dashSize: 3, gapSize: 1});
+    this.dashLineMaterial = dashedLineMaterial;
     
     // add new configurable parameter for changing radius
     this.configurableParams.radius = {value: this.radius, min: 5.0, max: 20.0, step: 0.5, parameterName: 'radius'};
+    
+    // add new configurable parameter for changing rotation speed
+    this.configurableParams.rotationSpeed = {value: this.rotationSpeed, min: 0.0, max: 0.1, step: 0.001, parameterName: 'rotationSpeed'};
 
     // add new configurable parameter for direction each vertex should be moved to for the visualization
     // in x-y plane or along z-axis
@@ -41,6 +57,9 @@ export class LineWaveform extends VisualizerBase {
 
     // toggle for line opacity
     this.configurableParams.opacityOn = {isOn: false, parameterName: 'lineOpacity'};
+    
+    // toggle dashed or solid lines
+    this.configurableParams.dashedLine = {isOn: false, parameterName: 'dashedLine'};
 
     // generate a random axis to rotate about
     // https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices
@@ -69,6 +88,8 @@ export class LineWaveform extends VisualizerBase {
       }
     });
     
+    this.points = [];
+    
     const bufferLen = this.audioManager.analyser.frequencyBinCount;
 
     const numObjects = this.numObjects;
@@ -89,21 +110,20 @@ export class LineWaveform extends VisualizerBase {
       currAngle += angle;
     }
     
-    const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : 0x00ff00;
-    const material = new LineBasicMaterial({color, transparent: true, opacity: 1.0});
     const geometry = new BufferGeometry().setFromPoints(this.points);
     
     // since we're interested in creating a circle, we can use LineLoop instead of Line
-    const line = new LineLoop(geometry, material);
+    const line = new LineLoop(geometry, this.lineMaterial);
     
     this.visualization = line;
     
     this.scene.add(this.visualization);
-    this.visualization.position.z = -25;
+    this.visualization.position.z = -30;
   }
   
   changeVisualizationColor(newColor: string){
-    (this.visualization.material as LineBasicMaterial).color = new Color(newColor);
+    (this.lineMaterial as LineBasicMaterial).color = new Color(newColor);
+    (this.dashLineMaterial as LineDashedMaterial).color = new Color(newColor);
   }
   
   update(){
@@ -130,6 +150,12 @@ export class LineWaveform extends VisualizerBase {
       visualizerVertexPositions.needsUpdate = true;
       console.log('updated radius');
       this.radius = newRadius;
+    }
+    
+    const isDashedLine = (this.configurableParams.dashedLine as ConfigurableParameterToggle).isOn;
+    this.visualization.material = isDashedLine ? this.dashLineMaterial : this.lineMaterial; 
+    if(isDashedLine){
+      this.visualization.computeLineDistances();
     }
     
     this.audioManager.analyser.getByteTimeDomainData(buffer);
@@ -209,7 +235,8 @@ export class LineWaveform extends VisualizerBase {
     }
     
     //this.visualization.rotateY(Math.PI / 2000);
-    this.visualization.rotateOnAxis(this.rotationAxis, Math.PI / 2000);
+    const speed = (this.configurableParams.rotationSpeed as ConfigurableParameterRange).value;
+    this.visualization.rotateOnAxis(this.rotationAxis, speed);
     
     this.doPostProcessing();
   }
