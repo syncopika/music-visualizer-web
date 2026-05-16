@@ -9,6 +9,7 @@ import {
   ShaderMaterial,
   Vector3,
   Group,
+  Color,
 } from 'three';
 
 export class Ripples extends VisualizerBase {
@@ -38,6 +39,17 @@ export class Ripples extends VisualizerBase {
     // add new configurable param for toggling shader or non-shader material
     // the shader material gives the closest 'ripple' effect atm so it's the default
     this.configurableParams.rippleShaderMaterialOn = {isOn: true, parameterName: 'rippleShaderMaterialOn'};
+  }
+  
+  changeVisualizationColor(color: string){
+    const newColor = new Color(color);
+    this.objectShaderMaterial.forEach(mat => {
+      mat.uniforms.uColor.value = newColor;
+    });
+    
+    this.objectNonShaderMaterial.forEach(mat => {
+      mat.color = newColor;
+    });
   }
   
   init(){
@@ -82,24 +94,34 @@ export class Ripples extends VisualizerBase {
         `,
         fragmentShader: `
           varying vec2 vUv;
+          uniform float uOpacity;
+          uniform vec3 uColor;
+          
           void main() {
             // distance from center
             float strength = distance(vUv, vec2(0.5));
             
+            //float ringColor = sin(strength * 30.0);
+            
             // the alpha color of the circle will be based on distance from center
             // the closer to the center of the circle, the more transparent
-            float colorAlpha = smoothstep(0.45, 0.5, strength);
+            float alpha = smoothstep(0.4, 0.6, strength);
             
-            gl_FragColor = vec4(.184, .533, .960, colorAlpha); // #2f88f5
+            gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, alpha * uOpacity);
           }
         `,
+        uniforms: {
+          uOpacity: {value: 1.0},
+          uColor: {value: new Color(color)}, // some kind of blue by default
+        },
         transparent: true, // necessary for alpha channel
       });
       this.objectShaderMaterial.push(shaderMaterial);
       
       // use shader material by default
       const ripple = new Mesh(geometry, shaderMaterial);
-      
+      ripple.scale.x = 0.3;
+      ripple.scale.y = 0.3;
       ripple.position.copy(position);
       
       return ripple;
@@ -120,7 +142,6 @@ export class Ripples extends VisualizerBase {
     
     this.visualization.position.z = -25;
     this.visualization.position.y += 2.5;
-    //this.visualization.rotateX(Math.PI / 2);
   }
   
   update(){
@@ -174,6 +195,29 @@ export class Ripples extends VisualizerBase {
           .normalize()
           .multiplyScalar(valToScaleTo * 1.5); // TODO: make this factor adjustable?
         
+        // idea: ripple meshes should always continue expanding up to a certain point and then start over at a radius of 0
+        // if lerpTo results in a smaller scale than the current scale,
+        // make the scale increase only by a tiny amount
+        /*
+        if(lerpTo.y < obj.scale.y){
+          obj.scale.lerpVectors(
+            obj.scale,
+            new Vector3(obj.scale.x * 1.01, obj.scale.y * 1.01, obj.scale.z),
+            lerpAmount,
+          );
+        }else{
+          obj.scale.lerpVectors(
+            obj.scale,
+            lerpTo,
+            lerpAmount * 1.2,
+          );
+        }
+        
+        if(obj.scale.y >= this.maxScaleY){
+          obj.scale.x = 0.1;
+          obj.scale.y = 0.1;
+        }*/
+        
         obj.scale.lerpVectors(
           obj.scale,
           lerpTo,
@@ -183,6 +227,14 @@ export class Ripples extends VisualizerBase {
         const rippleMaterialOn = (this.configurableParams.rippleShaderMaterialOn as ConfigurableParameterToggle).isOn;
         if(rippleMaterialOn){
           (obj as Mesh).material = this.objectShaderMaterial[i];
+          
+          const shaderMat = (obj as Mesh).material as ShaderMaterial;
+          if(lerpTo.y < obj.scale.y){
+            // if ripple is getting smaller/not expanding, make it less opaque to help emphasize the ripple expansion
+            shaderMat.uniforms.uOpacity.value = 0.2 * lerpTo.y;
+          }else{
+            shaderMat.uniforms.uOpacity.value = 1.0;
+          }
         }else{
           (obj as Mesh).material = this.objectNonShaderMaterial[i];
         }

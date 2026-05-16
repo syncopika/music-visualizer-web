@@ -81,7 +81,7 @@ export class SphericalCubes extends VisualizerBase {
       return new Vector3(verts[randVertIdx], verts[randVertIdx + 1], verts[randVertIdx + 2]);
     }
     
-    const skeletonGeometry = new SphereGeometry(12, 32, 16);
+    const skeletonGeometry = new SphereGeometry(8, 32, 16);
     
     for(let i = 0; i < bufferLen; i += increment){
       // TODO: get a random vertex but uniformly distributed?
@@ -121,7 +121,7 @@ export class SphericalCubes extends VisualizerBase {
       
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
-        const newVal = value * 12;
+        const newVal = value * 6;
 
         if(scaleToIsEmpty){
           this.scaleTo.push(newVal);
@@ -134,7 +134,7 @@ export class SphericalCubes extends VisualizerBase {
       
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
-        const newVal = value * 12;
+        const newVal = value * 6;
         const obj = this.visualization.children[i];
         
         let valToScaleTo;
@@ -159,7 +159,7 @@ export class SphericalCubes extends VisualizerBase {
       }
     }
     
-    this.visualization.rotateOnAxis(this.rotationAxis, Math.PI / 2500);
+    this.visualization.rotateOnAxis(this.rotationAxis, Math.PI / 2000);
     
     this.doPostProcessing();
   }
