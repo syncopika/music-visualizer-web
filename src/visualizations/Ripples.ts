@@ -96,23 +96,31 @@ export class Ripples extends VisualizerBase {
           varying vec2 vUv;
           uniform float uOpacity;
           uniform vec3 uColor;
+          uniform float uTime;
           
           void main() {
             // distance from center
             float strength = distance(vUv, vec2(0.5));
             
-            //float ringColor = sin(strength * 30.0);
+            float numStripes = 60.0; // changing this value produces interesting results!
+            
+            float sign = sin(strength * numStripes + uTime); // used to determine stripe color
             
             // the alpha color of the circle will be based on distance from center
             // the closer to the center of the circle, the more transparent
-            float alpha = smoothstep(0.4, 0.6, strength);
+            float alpha = smoothstep(0.2, 0.6, strength);
             
-            gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, alpha * uOpacity);
+            if(sign > 0.0){
+              gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, alpha * uOpacity);
+            }else{
+              gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0); // transparent stripe
+            }
           }
         `,
         uniforms: {
           uOpacity: {value: 1.0},
           uColor: {value: new Color(color)}, // some kind of blue by default
+          uTime: {value: 1.0},
         },
         transparent: true, // necessary for alpha channel
       });
@@ -231,10 +239,13 @@ export class Ripples extends VisualizerBase {
           const shaderMat = (obj as Mesh).material as ShaderMaterial;
           if(lerpTo.y < obj.scale.y){
             // if ripple is getting smaller/not expanding, make it less opaque to help emphasize the ripple expansion
-            shaderMat.uniforms.uOpacity.value = 0.2 * lerpTo.y;
+            shaderMat.uniforms.uOpacity.value = 0.3 * lerpTo.y;
           }else{
             shaderMat.uniforms.uOpacity.value = 1.0;
           }
+          
+          // make the stripes of the ripple meshes move based on time
+          shaderMat.uniforms.uTime.value = elapsedTime * lerpTo.y;
         }else{
           (obj as Mesh).material = this.objectNonShaderMaterial[i];
         }
