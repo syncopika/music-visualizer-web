@@ -1,4 +1,8 @@
-import { ConfigurableParameterToggle, VisualizerBase } from './VisualizerBase';
+import {
+  ConfigurableParameterToggle,
+  ConfigurableParameterRange,
+  VisualizerBase,
+} from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
@@ -39,6 +43,15 @@ export class Ripples extends VisualizerBase {
     // add new configurable param for toggling shader or non-shader material
     // the shader material gives the closest 'ripple' effect atm so it's the default
     this.configurableParams.rippleShaderMaterialOn = {isOn: true, parameterName: 'rippleShaderMaterialOn'};
+    
+    // add new slider param for customizing number of ripple "stripe"
+    this.configurableParams.rippleShaderNumStripes = {
+      value: 60.0,
+      min: 1.0,
+      max: 100.0,
+      step: 1.0,
+      parameterName: 'rippleShaderNumStripes',
+    };
   }
   
   changeVisualizationColor(color: string){
@@ -97,14 +110,13 @@ export class Ripples extends VisualizerBase {
           uniform float uOpacity;
           uniform vec3 uColor;
           uniform float uTime;
+          uniform float uNumStripes;
           
           void main() {
             // distance from center
             float strength = distance(vUv, vec2(0.5));
             
-            float numStripes = 60.0; // changing this value produces interesting results!
-            
-            float sign = sin(strength * numStripes + uTime); // used to determine stripe color
+            float sign = sin(strength * uNumStripes + uTime); // used to determine stripe color
             
             // the alpha color of the circle will be based on distance from center
             // the closer to the center of the circle, the more transparent
@@ -121,6 +133,7 @@ export class Ripples extends VisualizerBase {
           uOpacity: {value: 1.0},
           uColor: {value: new Color(color)}, // some kind of blue by default
           uTime: {value: 1.0},
+          uNumStripes: {value: (this.configurableParams.rippleShaderNumStripes as ConfigurableParameterRange).value},
         },
         transparent: true, // necessary for alpha channel
       });
@@ -203,29 +216,6 @@ export class Ripples extends VisualizerBase {
           .normalize()
           .multiplyScalar(valToScaleTo * 1.5); // TODO: make this factor adjustable?
         
-        // idea: ripple meshes should always continue expanding up to a certain point and then start over at a radius of 0
-        // if lerpTo results in a smaller scale than the current scale,
-        // make the scale increase only by a tiny amount
-        /*
-        if(lerpTo.y < obj.scale.y){
-          obj.scale.lerpVectors(
-            obj.scale,
-            new Vector3(obj.scale.x * 1.01, obj.scale.y * 1.01, obj.scale.z),
-            lerpAmount,
-          );
-        }else{
-          obj.scale.lerpVectors(
-            obj.scale,
-            lerpTo,
-            lerpAmount * 1.2,
-          );
-        }
-        
-        if(obj.scale.y >= this.maxScaleY){
-          obj.scale.x = 0.1;
-          obj.scale.y = 0.1;
-        }*/
-        
         obj.scale.lerpVectors(
           obj.scale,
           lerpTo,
@@ -246,6 +236,7 @@ export class Ripples extends VisualizerBase {
           
           // make the stripes of the ripple meshes move based on time
           shaderMat.uniforms.uTime.value = elapsedTime * lerpTo.y;
+          shaderMat.uniforms.uNumStripes.value = (this.configurableParams.rippleShaderNumStripes as ConfigurableParameterRange).value;
         }else{
           (obj as Mesh).material = this.objectNonShaderMaterial[i];
         }
