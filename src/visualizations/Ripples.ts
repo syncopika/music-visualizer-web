@@ -44,6 +44,9 @@ export class Ripples extends VisualizerBase {
     // the shader material gives the closest 'ripple' effect atm so it's the default
     this.configurableParams.rippleShaderMaterialOn = {isOn: true, parameterName: 'rippleShaderMaterialOn'};
     
+    // new configurable param for turning on/off water effect for ripple shader
+    this.configurableParams.rippleShaderWaterOn = {isOn: false, parameterName: 'rippleShaderWaterOn'};
+    
     // add new slider param for customizing number of ripple "stripe"
     this.configurableParams.rippleShaderNumStripes = {
       value: 60.0,
@@ -107,6 +110,7 @@ export class Ripples extends VisualizerBase {
         `,
         fragmentShader: `
           varying vec2 vUv;
+          uniform int uWaterOn; // 0 for off, 1 for on
           uniform float uOpacity;
           uniform vec3 uColor;
           uniform float uTime;
@@ -122,43 +126,47 @@ export class Ripples extends VisualizerBase {
             // the closer to the center of the circle, the more transparent
             float alpha = smoothstep(0.2, 0.6, strength);
             
-            // water effect shader stuff
-            float tau = 6.28318530718; // where'd this value come from?
-            int max_iter = 6;
-            
-            vec3 water_color = vec3(1.0, 1.0, 1.0) * 0.5;
-            float time = uTime * 0.5 + 23.0; // ???
-            
-            vec2 p = mod(vUv * tau, tau) - 250.0; // wut
-            vec2 i = vec2(p);
-            float c = 1.0;
-            float inten = 0.005;
-            
-            for(int n = 0; n < max_iter; n++){
-              float t = time * (1.0 - (3.5 / float(n + 1)));
-              i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));
-              c += 1.0 / length(vec2(p.x / (sin(i.x + t) / inten), p.y / (cos(i.y + t) / inten)));
-            }
-            
-            c /= float(max_iter);
-            c = 1.17 - pow(c, 1.4);
-            
-            vec3 color = vec3(pow(abs(c), 15.0)); // why 15?
-            color = clamp((color + water_color) * 1.2, 0.0, 1.0);
-            
-            // perturb the uv based on value of c from caustic calc above
-            vec2 tc = vec2(cos(c) - 0.75, sin(c) - 0.75) * 0.04;
-            vec2 uv = clamp(vUv + tc, 0.0, 1.0);  
-            
-            // set final color
             if(sign > 0.0){
-              gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, alpha * uOpacity) * vec4(color, 1.0);
+              if(uWaterOn == 1){
+                // water effect shader stuff
+                float tau = 6.28318530718; // where'd this value come from?
+                int max_iter = 6;
+                
+                vec3 water_color = vec3(1.0, 1.0, 1.0) * 0.5;
+                float time = uTime * 0.5 + 23.0; // ???
+                
+                vec2 p = mod(vUv * tau, tau) - 250.0; // wut
+                vec2 i = vec2(p);
+                float c = 1.0;
+                float inten = 0.005;
+                
+                for(int n = 0; n < max_iter; n++){
+                  float t = time * (1.0 - (3.5 / float(n + 1)));
+                  i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));
+                  c += 1.0 / length(vec2(p.x / (sin(i.x + t) / inten), p.y / (cos(i.y + t) / inten)));
+                }
+                
+                c /= float(max_iter);
+                c = 1.17 - pow(c, 1.4);
+                
+                vec3 color = vec3(pow(abs(c), 15.0)); // why 15?
+                color = clamp((color + water_color) * 1.2, 0.0, 1.0);
+                
+                // perturb the uv based on value of c from caustic calc above
+                vec2 tc = vec2(cos(c) - 0.75, sin(c) - 0.75) * 0.04;
+                vec2 uv = clamp(vUv + tc, 0.0, 1.0);
+                
+                gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, alpha * uOpacity) * vec4(color, 1.0);
+              }else{
+                gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, alpha * uOpacity);
+              }
             }else{
               gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0); // transparent stripe
             }
           }
         `,
         uniforms: {
+          uWaterOn: {value: 0}, // use number for bool
           uOpacity: {value: 1.0},
           uColor: {value: new Color(color)}, // some kind of blue by default
           uTime: {value: 1.0},
@@ -266,6 +274,9 @@ export class Ripples extends VisualizerBase {
           // make the stripes of the ripple meshes move based on time
           shaderMat.uniforms.uTime.value = elapsedTime * lerpTo.y;
           shaderMat.uniforms.uNumStripes.value = (this.configurableParams.rippleShaderNumStripes as ConfigurableParameterRange).value;
+        
+          // toggle water effect
+          shaderMat.uniforms.uWaterOn.value = (this.configurableParams.rippleShaderWaterOn as ConfigurableParameterToggle).isOn ? 1 : 0;
         }else{
           (obj as Mesh).material = this.objectNonShaderMaterial[i];
         }
