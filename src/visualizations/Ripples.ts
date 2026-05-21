@@ -129,6 +129,7 @@ export class Ripples extends VisualizerBase {
             if(sign > 0.0){
               if(uWaterOn == 1){
                 // water effect shader stuff
+                // taken from https://github.com/0xhckr/ghostty-shaders/blob/main/water.glsl
                 float tau = 6.28318530718; // where'd this value come from?
                 int max_iter = 6;
                 
