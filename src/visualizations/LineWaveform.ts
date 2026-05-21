@@ -37,6 +37,9 @@ export class LineWaveform extends VisualizerBase {
     this.rotationSpeed = 0.0;
     this.points = [];
     
+    if(!this.sceneManager.selectedColor && this.sceneManager.htmlColorPicker){
+      this.sceneManager.htmlColorPicker.value = '#00ff00';
+    }
     const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : 0x00ff00;
     
     const material = new LineBasicMaterial({color, transparent: true, opacity: 1.0});

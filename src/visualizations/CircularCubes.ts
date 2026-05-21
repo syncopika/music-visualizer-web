@@ -46,10 +46,15 @@ export class CircularCubes extends VisualizerBase {
     const radius = 10;
     const angle = 360 / numObjects;
     let currAngle = 0;
+    
+    const defaultColor = '#ffffdd';
+    if(!this.sceneManager.selectedColor && this.sceneManager.htmlColorPicker){
+      this.sceneManager.htmlColorPicker.value = defaultColor;
+    }
 
     const createVisualizationCube = (): Mesh => {
       const boxGeometry = new BoxGeometry(0.4, 0.4, 0.4);
-      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#ffffdd';
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : defaultColor;
       const boxMaterial = new MeshPhongMaterial({color}); // TODO: color gradient?
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;

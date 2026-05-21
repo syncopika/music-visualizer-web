@@ -64,11 +64,16 @@ export class CircularWaveform extends VisualizerBase {
     // if a small analyser.fftSize is chosen, frequencyBinCount will be small as well and
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
+    
+    const defaultColor = '#aaff00';
+    if(!this.sceneManager.selectedColor && this.sceneManager.htmlColorPicker){
+      this.sceneManager.htmlColorPicker.value = defaultColor;
+    }
 
     // TODO: have sphere be an option also?
     const createVisualizationCube = (): Mesh => {
       const boxGeometry = new BoxGeometry(0.2, 0.2, 0.2);
-      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#aaff00';
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : defaultColor;
       const boxMaterial = new MeshPhongMaterial({color});
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;
