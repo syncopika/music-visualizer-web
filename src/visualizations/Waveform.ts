@@ -45,10 +45,15 @@ export class Waveform extends VisualizerBase {
     
     const xIncrement = 0.93;
     let xPos = -25;
+    
+    const defaultColor = '#aaff00';
+    if(!this.sceneManager.selectedColor && this.sceneManager.htmlColorPicker){
+      this.sceneManager.htmlColorPicker.value = defaultColor;
+    }
 
     const createVisualizationCube = (): Mesh => {
       const boxGeometry = new BoxGeometry(0.4, 0.4, 0.4);
-      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#aaff00';
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : defaultColor;
       const boxMaterial = new MeshPhongMaterial({color});
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;

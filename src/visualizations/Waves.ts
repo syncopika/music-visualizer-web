@@ -73,10 +73,15 @@ export class Waves extends VisualizerBase {
     const xSeparation = params.xSeparation as ConfigurableParameterRange;
     const zSeparation = params.zSeparation as ConfigurableParameterRange;
     const yPos = params.yPos as ConfigurableParameterRange;
+    
+    const defaultColor = '#ffffdd';
+    if(!this.sceneManager.selectedColor && this.sceneManager.htmlColorPicker){
+      this.sceneManager.htmlColorPicker.value = defaultColor;
+    }
 
     const createVisualizationCube = (): Mesh => {
       const boxGeometry = new BoxGeometry(0.1, 0.1, 0.1);
-      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#ffffdd';
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : defaultColor;
       const boxMaterial = new MeshBasicMaterial({color}); // TODO: color gradient?
       const box = new Mesh(boxGeometry, boxMaterial);
       box.receiveShadow = true;

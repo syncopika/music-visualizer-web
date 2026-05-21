@@ -59,10 +59,15 @@ export class Lights extends VisualizerBase {
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
     
+    const defaultColor = '#2ff109';
+    if(!this.sceneManager.selectedColor && this.sceneManager.htmlColorPicker){
+      this.sceneManager.htmlColorPicker.value = defaultColor;
+    }
+    
     const createVisualizationSphere = (): Mesh => {
       const geometry = new SphereGeometry(10, 28, 16);
       
-      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#2ff109';
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : defaultColor;
       
       const material = new MeshStandardMaterial({color, transparent: true});
       const sphere = new Mesh(geometry, material);

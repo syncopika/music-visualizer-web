@@ -94,9 +94,14 @@ export class Ripples extends VisualizerBase {
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
     
+    const defaultColor = '#2f88f5';
+    if(!this.sceneManager.selectedColor && this.sceneManager.htmlColorPicker){
+      this.sceneManager.htmlColorPicker.value = defaultColor;
+    }
+    
     const createRipple = (position: Vector3): Mesh => {
       const geometry = new CircleGeometry(5, 32);
-      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#2f88f5';
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : defaultColor;
       const material = new MeshPhongMaterial({color, transparent: true});
       this.objectNonShaderMaterial.push(material);
       
@@ -124,7 +129,7 @@ export class Ripples extends VisualizerBase {
             
             // the alpha color of the circle will be based on distance from center
             // the closer to the center of the circle, the more transparent
-            float alpha = smoothstep(0.2, 0.6, strength);
+            float alpha = smoothstep(0.1, 0.6, strength);
             
             if(sign > 0.0){
               if(uWaterOn == 1){

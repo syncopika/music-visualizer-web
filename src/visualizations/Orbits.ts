@@ -62,9 +62,14 @@ export class Orbits extends VisualizerBase {
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
     
+    const defaultColor = '#2f88f5';
+    if(!this.sceneManager.selectedColor && this.sceneManager.htmlColorPicker){
+      this.sceneManager.htmlColorPicker.value = defaultColor;
+    }
+    
     const createVisualizationSphere = (): Mesh => {
       const geometry = new SphereGeometry(10, 28, 16);
-      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : '#2f88f5';
+      const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : defaultColor;
       const material = new MeshPhongMaterial({color, transparent: true});
       const sphere = new Mesh(geometry, material);
       

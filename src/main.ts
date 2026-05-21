@@ -497,6 +497,13 @@ const camera = sceneManager.camera;
 // stuff has loaded, hide loading message
 if(loadingMsg) loadingMsg.style.display = 'none';
 
+// add color picker element to sceneManager so when we switch visualizers,
+// if a default color is set and not changed by user, we can update the color picker to match
+// TODO: do same with background color?
+if(vizColorPicker){
+  sceneManager.setHtmlColorPicker((vizColorPicker as HTMLInputElement));
+}
+
 visualizer = new Waveform('waveform', sceneManager, audioManager, 50);
 visualizer.init();
 displayVisualizerConfigurableParams(visualizer);

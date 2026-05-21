@@ -21,6 +21,7 @@ export class SceneManager {
   clock: Clock;
   texture: Texture | null;
   selectedColor: string | null;
+  htmlColorPicker: HTMLInputElement | null;
   
   constructor(container: HTMLDivElement){
     const scene = new Scene();
@@ -66,6 +67,11 @@ export class SceneManager {
     this.texture = null;
     
     renderer.render(scene, camera);    
+  }
+  
+  // HTML color picker element to set color of
+  setHtmlColorPicker(element: HTMLInputElement){
+    this.htmlColorPicker = element;
   }
   
   // be able to update lighting here
