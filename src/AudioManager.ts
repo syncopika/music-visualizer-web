@@ -120,7 +120,7 @@ export class AudioManager {
   
   play(){
     if(!this.isPlaying){
-      this.audioSource?.start();
+      if(this.audioSource instanceof AudioBufferSourceNode) this.audioSource?.start();
       this.isPlaying = true;
       this.doWaveformVisualization();
     }
@@ -128,7 +128,13 @@ export class AudioManager {
   
   stop(){
     if(this.isPlaying){
-      this.audioSource?.stop();
+      if(this.audioSource instanceof AudioBufferSourceNode){
+        this.audioSource?.stop();
+      }else{
+        // assuming MediaStreamSource
+        this.audioSource?.disconnect();
+      }
+      
       this.isPlaying = false;
       
       // reload since we can't restart buffer source
