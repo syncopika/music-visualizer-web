@@ -19,13 +19,13 @@ export class AudioManager {
     const analyser = audioCtx.createAnalyser(); // default fft size is 2048
     const bufferLength = analyser.frequencyBinCount;
     const buffer = new Uint8Array(bufferLength);
+        
+    this.audioContext = audioCtx;
+    this.analyser = analyser;
+    this.buffer = buffer; // used for collecting audio data from analyser node
     
     // for recording
     const audioStream = audioCtx.createMediaStreamDestination();
-    
-    this.audioContext = audioCtx;
-    this.analyser = analyser;
-    this.buffer = buffer;
     this.mediaStreamDestination = audioStream;
     
     // for waveform visualization (separate from the main visualizer)
@@ -54,6 +54,16 @@ export class AudioManager {
     
     req.send();
   };
+  
+  async streamFromDifferentTab(){
+    const stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true});
+    this.audioSource = this.audioContext.createMediaStreamSource(stream);
+    this.audioSource.connect(this.analyser);
+    this.audioSource.connect(this.audioContext.destination);
+    this.audioSource.connect(this.mediaStreamDestination);
+    this.isPlaying = true;
+    this.doWaveformVisualization();
+  }
   
   // stuff for loading in an audio file.
   // TODO: can this stuff be simplified? seems like a bit much

@@ -53,6 +53,7 @@ const canvasContainer = document.getElementById('canvasContainer');
 const playBtn = document.getElementById('playVisualization');
 const resetBtn = document.getElementById('resetVisualization');
 const stopBtn = document.getElementById('stopVisualization');
+const streamAudioFromDifferentTabBtn = document.getElementById('streamAudioFromDifferentTab');
 const vizSelect = document.getElementById('visualizerChoice');
 const toggleRecording = document.getElementById('toggleRecordingCheckbox');
 const loadingMsg = document.getElementById('loadingMsg');
@@ -390,6 +391,13 @@ resetBtn?.addEventListener('click', () => {
   }
 });
 vizSelect?.addEventListener('change', switchVisualizer);
+
+streamAudioFromDifferentTabBtn?.addEventListener('click', () => {
+  if(audioManager){
+    audioManager.streamFromDifferentTab();
+    // TODO: do we need to do anything with the play/stop buttons?
+  }
+});
 
 toggleRecording?.addEventListener(
   'change', () => {
