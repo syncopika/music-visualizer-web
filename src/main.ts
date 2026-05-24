@@ -395,6 +395,7 @@ vizSelect?.addEventListener('change', switchVisualizer);
 streamAudioFromDifferentTabBtn?.addEventListener('click', () => {
   if(audioManager){
     audioManager.streamFromDifferentTab();
+    isPlaying = true;
     // TODO: do we need to do anything with the play/stop buttons?
   }
 });
