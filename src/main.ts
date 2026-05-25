@@ -185,6 +185,19 @@ function resetVisualization(){
   if(visualizer) visualizer.init();
 }
 
+function streamAudioFromDifferentTab(){
+  if(audioManager){
+    audioManager.streamFromDifferentTab();
+    isPlaying = true;
+    
+    if(recordingOn && !isRecording){
+      console.log('starting record');
+      startCanvasRecord(renderer);
+      isRecording = true;
+    }
+  }
+}
+
 function makeBoolToggle(name: string, parameter: ConfigurableParameterToggle): HTMLElement {
   const div = document.createElement('div');
   div.className = 'input';
@@ -392,12 +405,7 @@ resetBtn?.addEventListener('click', () => {
 });
 vizSelect?.addEventListener('change', switchVisualizer);
 
-streamAudioFromDifferentTabBtn?.addEventListener('click', () => {
-  if(audioManager){
-    audioManager.streamFromDifferentTab();
-    isPlaying = true;
-  }
-});
+streamAudioFromDifferentTabBtn?.addEventListener('click', streamAudioFromDifferentTab);
 
 toggleRecording?.addEventListener(
   'change', () => {
