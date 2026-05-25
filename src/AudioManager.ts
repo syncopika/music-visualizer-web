@@ -3,7 +3,7 @@ export class AudioManager {
   mediaStreamDestination:  MediaStreamAudioDestinationNode
   analyser:                AnalyserNode;
   buffer:                  Uint8Array;
-  audioSource:             AudioBufferSourceNode;
+  audioSource:             AudioBufferSourceNode | MediaStreamAudioSourceNode;
   audioFileUrl = '';
   isPlaying = false;
   audioDurationInMs = 0;
@@ -13,19 +13,22 @@ export class AudioManager {
   waveformDisplayAnimationId: number;
   waveformCanvasId = 'waveformCanvas';
   
+  // for streaming audio from a different tab
+  differentTabAudioStream: MediaStream | null;
+  
   constructor(){
     // set up web audio stuff
     const audioCtx = new AudioContext();
     const analyser = audioCtx.createAnalyser(); // default fft size is 2048
     const bufferLength = analyser.frequencyBinCount;
     const buffer = new Uint8Array(bufferLength);
+        
+    this.audioContext = audioCtx;
+    this.analyser = analyser;
+    this.buffer = buffer; // used for collecting audio data from analyser node
     
     // for recording
     const audioStream = audioCtx.createMediaStreamDestination();
-    
-    this.audioContext = audioCtx;
-    this.analyser = analyser;
-    this.buffer = buffer;
     this.mediaStreamDestination = audioStream;
     
     // for waveform visualization (separate from the main visualizer)
@@ -41,11 +44,13 @@ export class AudioManager {
     req.open('GET', url, true);
     req.responseType = 'arraybuffer';
     req.onload = () => {
+      const currAudioSrc = this.audioSource as AudioBufferSourceNode;
+      
       this.audioContext.decodeAudioData(req.response, (buffer: AudioBuffer) => {
-        if (!this.audioSource.buffer) this.audioSource.buffer = buffer;
-        this.audioSource.connect(this.analyser);
-        this.audioSource.connect(this.audioContext.destination);
-        this.audioSource.connect(this.mediaStreamDestination);
+        if (!currAudioSrc.buffer) currAudioSrc.buffer = buffer;
+        currAudioSrc.connect(this.analyser);
+        currAudioSrc.connect(this.audioContext.destination);
+        currAudioSrc.connect(this.mediaStreamDestination);
         
         // https://stackoverflow.com/questions/71118040/getting-the-duration-of-an-mp3-file-in-a-variable
         this.audioDurationInMs = buffer.duration * 1000; // convert to ms
@@ -55,13 +60,26 @@ export class AudioManager {
     req.send();
   };
   
+  async streamFromDifferentTab(){
+    if(!this.isPlaying){
+      const stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true});
+      this.audioSource = this.audioContext.createMediaStreamSource(stream);
+      this.audioSource.connect(this.analyser);
+      this.audioSource.connect(this.audioContext.destination);
+      this.audioSource.connect(this.mediaStreamDestination);
+      this.isPlaying = true;
+      this.doWaveformVisualization();
+      this.differentTabAudioStream = stream;
+    }else{
+      console.log('already streaming audio from a different tab.');
+    }
+  }
+  
   // stuff for loading in an audio file.
   // TODO: can this stuff be simplified? seems like a bit much
   setupInput(button: HTMLButtonElement){
     const openFile = (function(){
       return function(handleFileFunc: (f: File) => void){
-        //if(isPlaying) return;
-           
         const fileInput = document.getElementById('fileInput');
            
         function onFileChange(evt: Event){
@@ -110,7 +128,7 @@ export class AudioManager {
   
   play(){
     if(!this.isPlaying){
-      this.audioSource?.start();
+      if(this.audioSource instanceof AudioBufferSourceNode) this.audioSource?.start();
       this.isPlaying = true;
       this.doWaveformVisualization();
     }
@@ -118,7 +136,19 @@ export class AudioManager {
   
   stop(){
     if(this.isPlaying){
-      this.audioSource?.stop();
+      if(this.audioSource instanceof AudioBufferSourceNode){
+        this.audioSource?.stop();
+      }else{
+        // assuming MediaStreamSource
+        this.audioSource?.disconnect();
+        
+        if(this.differentTabAudioStream){
+          // stop streaming
+          this.differentTabAudioStream.getTracks().forEach(track => track.stop());
+          this.differentTabAudioStream = null;
+        }
+      }
+      
       this.isPlaying = false;
       
       // reload since we can't restart buffer source

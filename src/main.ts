@@ -53,6 +53,7 @@ const canvasContainer = document.getElementById('canvasContainer');
 const playBtn = document.getElementById('playVisualization');
 const resetBtn = document.getElementById('resetVisualization');
 const stopBtn = document.getElementById('stopVisualization');
+const streamAudioFromDifferentTabBtn = document.getElementById('streamAudioFromDifferentTab');
 const vizSelect = document.getElementById('visualizerChoice');
 const toggleRecording = document.getElementById('toggleRecordingCheckbox');
 const loadingMsg = document.getElementById('loadingMsg');
@@ -182,6 +183,19 @@ function stopVisualization(){
 
 function resetVisualization(){
   if(visualizer) visualizer.init();
+}
+
+function streamAudioFromDifferentTab(){
+  if(audioManager){
+    audioManager.streamFromDifferentTab();
+    isPlaying = true;
+    
+    if(recordingOn && !isRecording){
+      console.log('starting record');
+      startCanvasRecord(renderer);
+      isRecording = true;
+    }
+  }
 }
 
 function makeBoolToggle(name: string, parameter: ConfigurableParameterToggle): HTMLElement {
@@ -390,6 +404,8 @@ resetBtn?.addEventListener('click', () => {
   }
 });
 vizSelect?.addEventListener('change', switchVisualizer);
+
+streamAudioFromDifferentTabBtn?.addEventListener('click', streamAudioFromDifferentTab);
 
 toggleRecording?.addEventListener(
   'change', () => {
