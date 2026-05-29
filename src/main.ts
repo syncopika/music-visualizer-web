@@ -17,6 +17,7 @@ import { CircularWaveform } from './visualizations/CircularWaveform';
 import { LineWaveform } from './visualizations/LineWaveform';
 import { Starfield } from './visualizations/Starfield';
 import { Pixels } from './visualizations/Pixels';
+import { ColorCubes } from './visualizations/ColorCubes';
 import { CircularCubes } from './visualizations/CircularCubes';
 import { SphericalCubes } from './visualizations/SphericalCubes';
 import { Blob as AnimatedBlob } from './visualizations/Blob';
@@ -312,6 +313,10 @@ function switchVisualizer(evt: Event){
       break;
     case 'line-waveform':
       visualizer = new LineWaveform('line-waveform', sceneManager, audioManager, 60); // pass a value n such that 360 % n == 0
+      visualizer.init();
+      break;
+    case 'color-cubes':
+      visualizer = new ColorCubes('color-cubes', sceneManager, audioManager, 80);
       visualizer.init();
       break;
     case 'circular-cubes':
