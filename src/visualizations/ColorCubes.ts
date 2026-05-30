@@ -1,4 +1,8 @@
-import { VisualizerBase } from './VisualizerBase';
+import {
+  VisualizerBase,
+  ConfigurableParameterToggle,
+  ConfigurableParameterColor,
+} from './VisualizerBase';
 import { SceneManager } from '../SceneManager';
 import { AudioManager } from '../AudioManager';
 
@@ -27,8 +31,24 @@ export class ColorCubes extends VisualizerBase {
     this.visualization = new Group();
     this.lastTime = this.clock.getElapsedTime();
     this.scaleTo = [];
-    this.startColor = '#caf0f8';
-    this.endColor = '#023e8a';
+    this.startColor = '#023e8a';
+    this.endColor = '#caf0f8';
+    
+    // add new configurable param for toggling rotation
+    this.configurableParams.toggleRotation = {isOn: false, parameterName: 'toggleRotation'};
+    
+    // start and end color inputs for a gradient
+    this.configurableParams.startColor = {
+        parameterName: 'startColor',
+        defaultColor: this.startColor,
+        inputElement: null,
+    };
+    
+    this.configurableParams.endColor = {
+        parameterName: 'endColor',
+        defaultColor: this.endColor,
+        inputElement: null,
+    };
   }
   
   init(){
@@ -49,8 +69,9 @@ export class ColorCubes extends VisualizerBase {
     // so Math.floor(bufferLen / numObjects) may end up being 0
     const increment = Math.max(1, Math.floor(bufferLen / numObjects));
     
-    // TODO: hook this up with this.startColor (and make another one for endColor)?
-    const defaultColor = '#ffffdd';
+    // for now, the default visualizer color picker will have no effect since this visualizer is kinda
+    // special in that it features the ability to choose a start and end color (for a gradient).
+    const defaultColor = '#023e8a';
     if(!this.sceneManager.selectedColor && this.sceneManager.htmlColorPicker){
       this.sceneManager.htmlColorPicker.value = defaultColor;
     }
@@ -95,14 +116,21 @@ export class ColorCubes extends VisualizerBase {
     };
     
     // position the cubes in a square array
-    const xDist = 2;
-    const yDist = 2;
-    let currY = 12;
-    const rowStartX = -10;
+    // note that we're putting the cubes in order of fft buckets and assuming time frequency data
+    // which means that the data in the buffer is ordered from lowest frequencies to highest.
+    // so in this case, the cubes start from the top left to right and go from lowest to highest frequency.
+    const xDist = 3;
+    const yDist = 3;
+    let currY = 13;
+    const rowStartX = -15;
     let currX = rowStartX;
     let currRowCubeCount = 0;
     const numCubesPerRow = 10;
     for(let i = 0; i < bufferLen; i += increment){
+      if(this.numObjects === this.visualization.children.length){
+        break;
+      }
+      
       if(numCubesPerRow === currRowCubeCount){
         // we've filled out a row, move to next
         currX = rowStartX;
@@ -151,7 +179,6 @@ export class ColorCubes extends VisualizerBase {
       }
     }else{
       //const lerpAmount = (elapsedTime - this.lastTime) / timeInterval;
-      
       for(let i = 0; i < numObjects; i++){
         const value = buffer[i * increment] / 255;
         const newVal = value * 6;
@@ -178,10 +205,22 @@ export class ColorCubes extends VisualizerBase {
         //shaderMat.uniforms.uEndColor.value = new Color(this.endColor),
         shaderMat.uniforms.uFactor.value = 0.5 * lerpTo.y;
         shaderMat.uniforms.uOpacity.value = 0.3 * lerpTo.y;
+        
+        const startColorInput = (this.configurableParams.startColor as ConfigurableParameterColor).inputElement;
+        if(startColorInput){
+          shaderMat.uniforms.uStartColor.value = new Color(startColorInput.value);
+        }
+        
+        const endColorInput = (this.configurableParams.endColor as ConfigurableParameterColor).inputElement;
+        if(endColorInput){
+          shaderMat.uniforms.uEndColor.value = new Color(endColorInput.value);
+        }
       }
     }
-    
-    this.visualization.rotateY(Math.PI / 2000);
+
+    if((this.configurableParams.toggleRotation as ConfigurableParameterToggle).isOn){
+      this.visualization.rotateY(Math.PI / 2000);
+    }
     
     this.doPostProcessing();
   }

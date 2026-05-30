@@ -34,6 +34,15 @@ export interface ConfigurableParameterToggle {
   parameterName?: string;
 }
 
+export interface ConfigurableParameterColor {
+  parameterName: string;
+  defaultColor: string;
+  doNotShow?: boolean;
+  // the inputElement will be created and set not within a visualizer but when the toolbar options are populated.
+  // then the visualizer's update() code can reference the input element
+  inputElement: HTMLInputElement | null;
+}
+
 export class VisualizerBase {
   name: string;
   sceneManager: SceneManager;
@@ -47,7 +56,7 @@ export class VisualizerBase {
   afterimagePass: AfterimagePass;
   outputPass: OutputPass;
   fxaaPass: ShaderPass;
-  configurableParams: Record<string, ConfigurableParameterRange | ConfigurableParameterToggle>;
+  configurableParams: Record<string, ConfigurableParameterRange | ConfigurableParameterToggle | ConfigurableParameterColor>;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager){
     this.name = name;
