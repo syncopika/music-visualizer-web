@@ -65,7 +65,6 @@ export class AudioManager {
       const stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true});
       this.audioSource = this.audioContext.createMediaStreamSource(stream);
       this.audioSource.connect(this.analyser);
-      this.audioSource.connect(this.audioContext.destination);
       this.audioSource.connect(this.mediaStreamDestination);
       this.isPlaying = true;
       this.doWaveformVisualization();

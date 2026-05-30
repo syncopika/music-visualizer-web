@@ -11,12 +11,14 @@ import {
   VisualizerBase, 
   ConfigurableParameterRange,
   ConfigurableParameterToggle,
+  ConfigurableParameterColor,
 } from './visualizations/VisualizerBase';
 import { Waveform } from './visualizations/Waveform';
 import { CircularWaveform } from './visualizations/CircularWaveform';
 import { LineWaveform } from './visualizations/LineWaveform';
 import { Starfield } from './visualizations/Starfield';
 import { Pixels } from './visualizations/Pixels';
+import { ColorCubes } from './visualizations/ColorCubes';
 import { CircularCubes } from './visualizations/CircularCubes';
 import { SphericalCubes } from './visualizations/SphericalCubes';
 import { Blob as AnimatedBlob } from './visualizations/Blob';
@@ -256,6 +258,31 @@ function makeSlider(name: string, parameter: ConfigurableParameterRange): HTMLEl
   return div;
 }
 
+function makeColorInput(name: string, parameter: ConfigurableParameterColor): HTMLElement {
+  const div = document.createElement('div');
+  div.className = 'input';
+  div.style.display = 'flex';
+  div.style.alignItems = 'center';
+
+  const label = document.createElement('label');
+  label.textContent = name;
+  label.htmlFor = `${name}-input`;
+  
+  const input = document.createElement('input');
+  input.id = `${name}-input`;
+  input.type = 'color';
+  input.value = parameter.defaultColor;
+  
+  div.appendChild(label);
+  div.appendChild(input);
+  
+  // make sure to add the input element to parameter so the visualizer can reference it
+  // to get the current color value
+  parameter.inputElement = input;
+  
+  return div;
+}
+
 function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
   // clear visualizer-specific parameter section
   visualizerOptions?.replaceChildren();
@@ -263,12 +290,14 @@ function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
   // add current visualizer-specific parameters
   let currParamName = '';
   const params = Object.keys(visualizer.configurableParams);
-  params.forEach(p => {
-    const param = visualizer.configurableParams[p];
+  params.forEach(paramName => {
+    const param = visualizer.configurableParams[paramName];
     if(param?.doNotShow){
       return;
     }
     
+    // add hr element to separate parameters that don't have the same parameter name.
+    // this allows us to group parameters in the same section if we want to.
     if(param?.parameterName !== currParamName){
       visualizerOptions?.appendChild(document.createElement('hr'));
       currParamName = param.parameterName || '';
@@ -276,11 +305,15 @@ function displayVisualizerConfigurableParams(visualizer: VisualizerBase){
     
     if('isOn' in param){
       // simple on/off toggle
-      const newToggleDiv = makeBoolToggle(p, param);
+      const newToggleDiv = makeBoolToggle(paramName, param);
       visualizerOptions?.appendChild(newToggleDiv);
+    }else if('defaultColor' in param){
+      // color input
+      const colorInput = makeColorInput(paramName, (param as ConfigurableParameterColor));
+      visualizerOptions?.appendChild(colorInput);
     }else{
       // slider
-      const newSliderDiv = makeSlider(p, (param as ConfigurableParameterRange));
+      const newSliderDiv = makeSlider(paramName, (param as ConfigurableParameterRange));
       visualizerOptions?.appendChild(newSliderDiv);
     }
   });
@@ -312,6 +345,10 @@ function switchVisualizer(evt: Event){
       break;
     case 'line-waveform':
       visualizer = new LineWaveform('line-waveform', sceneManager, audioManager, 60); // pass a value n such that 360 % n == 0
+      visualizer.init();
+      break;
+    case 'color-cubes':
+      visualizer = new ColorCubes('color-cubes', sceneManager, audioManager, 100);
       visualizer.init();
       break;
     case 'circular-cubes':
