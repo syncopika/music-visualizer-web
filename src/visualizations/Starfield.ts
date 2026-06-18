@@ -15,6 +15,8 @@ import {
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+import starModelUrl from '/assets/star.gltf';
+
 interface GLTFFile {
   asset: Record<string, string>,
   scene: Group,
@@ -236,7 +238,7 @@ export class Starfield extends VisualizerBase {
     }
     
     // load gltf model of star
-    const starGltf = await this.loadModel('/assets/star.gltf');
+    const starGltf = await this.loadModel(starModelUrl);
     const starModel: Mesh = (starGltf as GLTFFile).scene.children[0] as Mesh;
     starModel.scale.set(0.5, 0.5, 0.5);
     

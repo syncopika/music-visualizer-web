@@ -1,3 +1,5 @@
+import demoPieceUrl from '/assets/080415pianobgm3popver-edit-steinway.wav';
+
 export class AudioManager {
   audioContext:            AudioContext;
   mediaStreamDestination:  MediaStreamAudioDestinationNode
@@ -119,8 +121,7 @@ export class AudioManager {
   }
   
   loadExample(){
-    const example = '/assets/080415pianobgm3popver-edit-steinway.wav';
-    this.loadAudioFile(example);
+    this.loadAudioFile(demoPieceUrl);
     const filenameElement = document.getElementById('audioFileName');
     if(filenameElement) filenameElement.textContent = '080415pianobgm3popver-edit-steinway.wav'; 
   }
