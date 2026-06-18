@@ -5,6 +5,7 @@
       "es2016", 
       "dom"
     ],
+    "types": ["vite/client"],
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "sourceMap": true,
