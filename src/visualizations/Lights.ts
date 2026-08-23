@@ -12,6 +12,7 @@ import {
   MeshStandardMaterial,
   Vector3,
   Group,
+  Object3D,
 } from 'three';
 
 export class Lights extends VisualizerBase {
@@ -19,6 +20,16 @@ export class Lights extends VisualizerBase {
   visualization: Group;
   lastTime: number;
   scaleTo: number[];
+  
+  objectRadius: number;
+  
+  // set some boundaries to restrict how far the objects can move to (so they will always remain within camera view)
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  minZ: number;
+  maxZ: number;
   
   constructor(name: string, sceneManager: SceneManager, audioManager: AudioManager, size: number){
     super(name, sceneManager, audioManager);
@@ -33,6 +44,15 @@ export class Lights extends VisualizerBase {
       max: 1.0, 
       step: 0.01,
     };
+    
+    this.objectRadius = 10;
+    
+    this.minX = -30;
+    this.maxX = 30;
+    this.minY = -20;
+    this.maxY = 20;
+    this.minZ = -40; // remember, going into the screen == more negative Z value
+    this.maxZ = 10;
     
     (this.configurableParams.bloomPass as ConfigurableParameterToggle).isOn = true;
   }
@@ -65,7 +85,7 @@ export class Lights extends VisualizerBase {
     }
     
     const createVisualizationSphere = (): Mesh => {
-      const geometry = new SphereGeometry(10, 28, 16);
+      const geometry = new SphereGeometry(this.objectRadius, 28, 16);
       
       const color = this.sceneManager.selectedColor ? this.sceneManager.selectedColor : defaultColor;
       
@@ -79,7 +99,7 @@ export class Lights extends VisualizerBase {
       );
       
       const scale = Math.random() * (0.085 - 0.025) + 0.025;
-      sphere.scale.set(scale, scale, scale); //0.08, 0.08, 0.08);
+      sphere.scale.set(scale, scale, scale);
       
       // give the sphere a random velocity
       const randVelocity = new Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, 1);
@@ -103,6 +123,42 @@ export class Lights extends VisualizerBase {
   
   lerp(from: number, to: number, amount: number): number{
     return to + (from - to) * amount;
+  }
+  
+  objectIsOutOfBounds(obj: Object3D): boolean {
+    if(obj.position.y > this.maxY || obj.position.y < this.minY || obj.position.x < this.minX || obj.position.x > this.maxX){
+      return true;
+    }
+    return false;
+  }
+  
+  getOutOfBoundsBoundaryNormal(obj: Object3D): Vector3 {
+    if(obj.position.y > this.maxY){
+      return new Vector3(0, -1, 0); // the top y-axis boundary's normal is pointing downwards
+    }
+    if(obj.position.y < this.minY){
+      return new Vector3(0, 1, 0);
+    }
+    if(obj.position.x < this.minX){
+      return new Vector3(1, 0, 0);
+    }
+    return new Vector3(-1, 0, 0);
+  }
+  
+  // get the velocity of a sphere object after it "collides" with an out-of-bounds boundary
+  // we're assuming a perfectly elastic collision here so the new velocity should be a
+  // mirror reflection about the boundary's normal vector.
+  // might be helpful: https://github.com/syncopika/learningCpp/blob/master/sdl2projects/asteroids/main.cpp#L254
+  getPostCollisionVelocity(object: Object3D, normal: Vector3): Vector3 {
+    // @ts-expect-error TS2339
+    const objVelocity = object.velocity; // TODO: we might need to make a wrapper around object to provide velocity to avoid adding the typecheck ignore comments
+    
+    // @ts-expect-error TS2339
+    const velocityNormalDotProduct = object.velocity.dot(normal);
+    
+    const newVelocity = objVelocity.sub(normal.multiplyScalar(2 * velocityNormalDotProduct));
+    
+    return newVelocity;
   }
   
   update(){
@@ -156,28 +212,23 @@ export class Lights extends VisualizerBase {
     this.visualization.children.forEach(c => {
       const speed = this.configurableParams.speed as ConfigurableParameterRange;
       
-      // @ts-expect-error TS2339
-      c.position.x += c.velocity.x * speed.value;
-      // @ts-expect-error TS2339
-      c.position.y += c.velocity.y * speed.value;
-      
       // if child goes out of viewport, adjust
       //
       // should we convert world pos to screen pos and check that?
       // https://stackoverflow.com/questions/11586527/converting-world-coordinates-to-screen-coordinates-in-three-js-using-projection
       // https://www.reddit.com/r/Unity3D/comments/e04hot/how_is_cameraworldtoviewportpoint_implemented/
-      //
-      // try this for now
-      if(c.position.y > 30 || c.position.y < -30 || c.position.x < -30 || c.position.x > 30){
-        // push the child back some multiple of its velocity vector
-        c.position.set(
-          // @ts-expect-error TS2339
-          c.position.x - c.velocity.x * 50,
-          // @ts-expect-error TS2339
-          c.position.y - c.velocity.y * 50,
-          c.position.z
-        )
+      if(this.objectIsOutOfBounds(c)){
+        const boundaryNormal = this.getOutOfBoundsBoundaryNormal(c);
+        const newVelocity = this.getPostCollisionVelocity(c, boundaryNormal);
+        // @ts-expect-error TS2339
+        c.velocity.copy(newVelocity);
       }
+      
+      // @ts-expect-error TS2339
+      c.position.x += c.velocity.x * speed.value;
+      
+      // @ts-expect-error TS2339
+      c.position.y += c.velocity.y * speed.value;
     });
     
     this.doPostProcessing();
